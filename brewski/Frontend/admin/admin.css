@@ -1,6 +1,37 @@
 :root {
     --sidebar-width: clamp(220px, 12.5vw, 320px);
     --transition-speed: 0.2s;
+
+    /* Surfaces */
+    --surface: #ffffff;
+    --surface-muted: #f9fafb;
+    --surface-subtle: #fafafa;
+
+    /* Lines */
+    --line: #e5e7eb;
+    --line-strong: #d1d5db;
+
+    /* Text */
+    --text: #111827;
+    --text-body: #374151;
+    --text-muted: #6b7280;
+    --text-faint: #9ca3af;
+
+    /* Accent */
+    --accent: #2563eb;
+    --accent-strong: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --accent-line: #bfdbfe;
+
+    /* Shape + control metrics */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --control-height: 38px;
+    --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.25);
+
+    /* Native select arrows differ in size and inset per browser; this draws one */
+    --select-chevron: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 }
 
 * {
@@ -275,109 +306,404 @@ body.sidebar-open .main-content {
 }
 
 /* =========================================
-   CUSTOMER INFORMATION PAGE STYLES
+   ADMIN PAGE COMPONENTS
+   Shared shell for the dynamically loaded views
+   (customer_information.php, transactions.php,
+   authentication_logs.php).
+   admin.js injects those files into #dynamicView, so
+   everything they depend on has to live in this file -
+   there is no Tailwind build behind these class names.
    ========================================= */
 
-/* Layout Utilities */
-.flex { display: flex; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.mb-6 { margin-bottom: 1.5rem; }
-.mt-1 { margin-top: 0.25rem; }
-.text-2xl { font-size: 1.5rem; line-height: 2rem; }
-.font-bold { font-weight: 700; }
-.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-.font-medium { font-weight: 500; }
-.text-xs { font-size: 0.75rem; line-height: 1rem; }
-.text-gray-900 { color: #111827; }
-.text-gray-500 { color: #6b7280; }
-.text-gray-600 { color: #4b5563; }
-.text-gray-700 { color: #374151; }
-.text-white { color: white; }
-.bg-white { background-color: white; }
-.bg-gray-50 { background-color: #f9fafb; }
-.bg-blue-600 { background-color: #2563eb; }
-.hover\:bg-blue-700:hover { background-color: #1d4ed8; }
-.px-4 { padding-left: 1rem; padding-right: 1rem; }
-.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-.rounded-md { border-radius: 0.375rem; }
-.transition { transition-property: all; transition-duration: 150ms; }
-.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-.border { border-width: 1px; }
-.border-gray-200 { border-color: #e5e7eb; }
-.border-gray-300 { border-color: #d1d5db; }
-.rounded-lg { border-radius: 0.5rem; }
-.p-4 { padding: 1rem; }
-.gap-4 { gap: 1rem; }
-.gap-3 { gap: 0.75rem; }
-.relative { position: relative; }
-.overflow-hidden { overflow: hidden; }
-.overflow-x-auto { overflow-x: auto; }
-.min-w-full { min-width: 100%; }
-.whitespace-nowrap { white-space: nowrap; }
-.uppercase { text-transform: uppercase; }
-.tracking-wider { letter-spacing: 0.05em; }
-.cursor-pointer { cursor: pointer; }
-.outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
-.focus\:ring-2:focus { 
-    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); 
-    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); 
-    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000); 
+/* --- Page shell --- */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
-.focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6; }
-.pl-10 { padding-left: 2.5rem; }
-.pr-4 { padding-right: 1rem; }
-.left-3 { left: 0.75rem; }
-.top-2\.5 { top: 0.625rem; }
-.h-4 { height: 1rem; }
-.w-4 { width: 1rem; }
-.h-5 { height: 1.25rem; }
-.w-5 { width: 1.25rem; }
-.ml-3 { margin-left: 0.75rem; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
-.pointer-events-none { pointer-events: none; }
-.animate-fade-in { animation: fadeIn 0.2s ease-in; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Table Specific Styles */
-.data-table th {
-    background-color: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    font-size: 0.75rem; /* 12px */
+.page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 0.2s ease-in;
+}
+
+.page-header {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scoped to .main-content so it outranks the generic `.main-content h1` rule
+   above. That rule scores (0,1,1) and a bare `.page-title` only (0,1,0), so
+   without this every value declared here is silently dropped. */
+.main-content .page-title {
+    margin: 0;
+    font-size: 24px;
     font-weight: 600;
-    color: #6b7280;
+    line-height: 1.3;
+    color: var(--text);
+}
+
+/* .page-header is a flex column, so the dashboard's margin is redundant here */
+.page-header .subtitle {
+    margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-container,
+    .modal-backdrop {
+        animation: none;
+    }
+}
+
+/* --- Toolbar (search + filters) --- */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+
+.toolbar-filters {
+    display: flex;
+    flex: 1 1 340px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.search-field {
+    position: relative;
+    flex: 1 1 260px;
+    max-width: 360px;
+    min-width: 0;
+}
+
+.search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    color: var(--text-faint);
+    pointer-events: none;
+}
+
+/* An explicit height (rather than padding alone) keeps the text input and the
+   native select on the same baseline - a select otherwise sizes itself from its
+   own line box and sits a pixel or two off the input beside it. */
+.toolbar-input,
+.toolbar-select {
+    width: 100%;
+    height: var(--control-height);
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.toolbar-input::placeholder {
+    color: var(--text-faint);
+}
+
+/* Leaves room for the icon the search field overlays */
+.search-field .toolbar-input {
+    padding-left: 36px;
+}
+
+.toolbar-select {
+    width: auto;
+    min-width: 170px;
+    padding-right: 34px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: var(--select-chevron);
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.toolbar-input:focus,
+.toolbar-select:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+}
+
+/* --- Buttons --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Dialog actions carry more weight than the in-row ones, so they get a taller target */
+.modal-footer .btn {
+    height: 36px;
+    padding: 0 16px;
+}
+
+.btn-secondary {
+    color: var(--text-body);
+    background-color: var(--surface);
+    border-color: var(--line-strong);
+}
+
+.btn-secondary:hover {
+    background-color: var(--surface-muted);
+}
+
+.btn-primary {
+    color: #ffffff;
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-strong);
+    border-color: var(--accent-strong);
+}
+
+.btn-view {
+    color: var(--accent);
+    background-color: var(--accent-soft);
+    border-color: var(--accent-line);
+}
+
+.btn-view:hover {
+    background-color: #dbeafe;
+}
+
+.btn-edit {
+    color: #c2410c;
+    background-color: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.btn-edit:hover {
+    background-color: #ffedd5;
+}
+
+.btn-delete {
+    color: #dc2626;
+    background-color: #fef2f2;
+    border-color: #fecaca;
+}
+
+.btn-delete:hover {
+    background-color: #fee2e2;
+}
+
+.btn-danger {
+    color: #ffffff;
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+/* --- Bulk selection bar (toggled with .visible) --- */
+.bulk-actions-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 4px 4px 14px;
+    background-color: var(--accent-soft);
+    border: 1px solid var(--accent-line);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: #1e40af;
+    white-space: nowrap;
+}
+
+.bulk-actions-bar.visible {
+    display: flex;
+}
+
+.bulk-count {
+    font-weight: 600;
+}
+
+/* --- Table card --- */
+.table-card {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+    overflow: hidden;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Below this the six-column tables would crush their action buttons, so they
+   scroll inside .table-scroll instead. Opt-in - the narrow logs table is fine. */
+.data-table.table-wide {
+    min-width: 760px;
+}
+
+.data-table th {
+    background-color: var(--surface-muted);
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 1rem 1.5rem;
+    padding: 12px 20px;
+    white-space: nowrap;
 }
 
 .data-table td {
-    padding: 1rem 1.5rem;
+    padding: 14px 20px;
     border-bottom: 1px solid #f3f4f6;
+    color: var(--text-body);
     vertical-align: middle;
 }
 
+.data-table tbody tr {
+    transition: background-color 0.12s ease;
+}
+
 .data-table tbody tr:hover {
-    background-color: #f9fafb;
+    background-color: var(--surface-muted);
 }
 
-.divide-y > :not([hidden]) ~ :not([hidden]) {
-    border-top-width: 1px;
-}
-.divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #e5e7eb;
+/* `width: 1%` is the shrink-to-fit idiom under table-layout: auto - it pins the
+   checkbox column to its content width instead of a fixed box with dead space. */
+.data-table .col-check {
+    width: 1%;
+    padding-left: 20px;
+    padding-right: 8px;
 }
 
-/* Status Badges */
+.data-table .col-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* The empty state carries its own padding */
+.data-table td.empty-cell {
+    padding: 0;
+}
+
+/* --- Cell helpers --- */
+.cell-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.cell-strong {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.cell-muted {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.cell-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.cell-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.cell-sub {
+    font-size: 12px;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.row-checkbox {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    vertical-align: middle;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.row-checkbox:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* --- Status / role badges --- */
 .badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.75rem;
+    padding: 3px 10px;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 600;
-    line-height: 1.25rem;
+    line-height: 1.5;
+    white-space: nowrap;
 }
 
 .badge-active {
@@ -395,128 +721,353 @@ body.sidebar-open .main-content {
     color: #991b1b;
 }
 
-/* Text Action Buttons (View, Edit, Delete) */
-.action-text-btn {
-    background: none;
-    border: none;
-    font-size: 0.875rem; /* 14px */
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    transition: all 0.2s ease;
+.badge-inactive {
+    background-color: #f3f4f6;
+    color: #4b5563;
 }
 
-/* Visibility Control for Actions */
-.opacity-0 { opacity: 0; }
-.group:hover .opacity-0 { opacity: 1; }
-.transition-opacity { transition-property: opacity; transition-duration: 200ms; }
-
-/* Color Variants for Actions */
-.text-blue-600 { color: #2563eb; }
-.hover\:text-blue-800:hover { color: #1e40af; }
-.hover\:bg-blue-50:hover { background-color: #eff6ff; }
-
-.text-orange-600 { color: #ea580c; }
-.hover\:text-orange-800:hover { color: #c2410c; }
-.hover\:bg-orange-50:hover { background-color: #fff7ed; }
-
-.text-red-600 { color: #dc2626; }
-.hover\:text-red-800:hover { color: #991b1b; }
-.hover\:bg-red-50:hover { background-color: #fef2f2; }
-
-/* Toolbar Inputs */
-.toolbar-input {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+.badge-method {
+    background-color: #eef2ff;
+    color: #3730a3;
 }
 
-.toolbar-input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+.badge-role-admin {
+    background-color: #ede9fe;
+    color: #5b21b6;
 }
 
-/* Bulk Actions Bar */
-.bulk-actions-bar {
-    display: none; /* Hidden by default, toggled via JS */
-    align-items: center;
-    gap: 0.5rem;
+.badge-role-staff {
+    background-color: #dbeafe;
+    color: #1e40af;
 }
 
-.bulk-actions-bar.visible {
-    display: flex;
-}
-
-.btn-danger-outline {
-    background-color: #fff;
-    color: #dc2626;
-    border: 1px solid #fecaca;
-    padding: 0.375rem 0.75rem;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-danger-outline:hover {
-    background-color: #fef2f2;
-}
-
-/* Pagination Footer */
-.pagination-footer {
-    padding: 0.75rem 1.5rem;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.875rem;
+.badge-role-customer {
+    background-color: #f3f4f6;
     color: #374151;
+}
+
+/* --- Empty state --- */
+.empty-state {
+    padding: 56px 24px;
+    text-align: center;
+    background-color: var(--surface-subtle);
+}
+
+.empty-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-body);
+}
+
+.empty-hint {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--text-faint);
+}
+
+/* --- Pagination footer --- */
+/* Deliberately no border-top: the table's last row already draws a divider, so
+   adding one here renders as a visible double line above the footer. */
+.pagination-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    background-color: var(--surface-subtle);
+}
+
+.pagination-info {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.pagination-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
 }
 
 .page-link {
     display: inline-flex;
     align-items: center;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    background-color: white;
-    color: #374151;
-    border-radius: 0.375rem;
-    text-decoration: none;
-    font-size: 0.875rem;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    background-color: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-body);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.page-link:hover {
-    background-color: #f9fafb;
+.page-link:hover:not(:disabled) {
+    background-color: var(--surface-muted);
+    border-color: var(--text-faint);
+}
+
+.page-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.page-link:disabled {
+    color: var(--text-faint);
+    background-color: var(--surface-muted);
+    border-color: var(--line);
+    cursor: not-allowed;
 }
 
 .page-link.active {
-    background-color: #eff6ff;
-    color: #2563eb;
-    border-color: #bfdbfe;
+    background-color: var(--accent-soft);
+    border-color: var(--accent-line);
+    color: var(--accent);
+    font-weight: 600;
 }
 
-/* Responsive Adjustments for Table */
-@media (max-width: 768px) {
-    .data-table th, 
-    .data-table td {
-        padding: 0.75rem 1rem;
+/* --- Modal (built on demand by window.openAdminModal in admin.js) --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-color: rgba(17, 24, 39, 0.55);
+    animation: fadeIn 0.15s ease-in;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    background-color: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 25px -5px rgba(17, 24, 39, 0.2);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-muted);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    background-color: #f3f4f6;
+    color: var(--text);
+}
+
+.modal-close:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--line);
+    background-color: var(--surface-subtle);
+}
+
+/* Read-only key/value list used by the View dialogs */
+.detail-list {
+    display: grid;
+    grid-template-columns: minmax(110px, 150px) 1fr;
+    gap: 14px 16px;
+    margin: 0;
+    font-size: 14px;
+}
+
+.detail-list dt {
+    color: var(--text-muted);
+}
+
+.detail-list dd {
+    margin: 0;
+    color: var(--text);
+    font-weight: 500;
+    /* Keeps a long product name or email from overflowing the dialog */
+    overflow-wrap: anywhere;
+}
+
+/* Field grid used by the Edit dialogs */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-body);
+}
+
+.form-field input,
+.form-field select {
+    width: 100%;
+    height: var(--control-height);
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-field input::placeholder {
+    color: var(--text-faint);
+}
+
+.form-field select {
+    padding-right: 34px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: var(--select-chevron);
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+}
+
+@media (min-width: 560px) {
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
     }
-    
+
+    .form-field-full {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 559px) {
+    .detail-list {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .detail-list dt {
+        margin-top: 12px;
+    }
+
+    .detail-list dt:first-of-type {
+        margin-top: 0;
+    }
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    /* Tighter gutters so the table gets the width back on a phone */
+    .main-content {
+        padding: 88px 16px 32px;
+    }
+
+    .main-content .page-title {
+        font-size: 20px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 12px 16px;
+    }
+
+    .data-table .col-check {
+        padding-left: 16px;
+        padding-right: 4px;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-field {
+        max-width: none;
+    }
+
+    .toolbar-select {
+        width: 100%;
+    }
+
+    /* The bulk bar sits under the filters, so its own padding no longer needs
+       to leave room for a control beside it */
+    .bulk-actions-bar {
+        justify-content: space-between;
+        padding-left: 12px;
+    }
+
     .pagination-footer {
         flex-direction: column;
-        gap: 1rem;
         align-items: flex-start;
     }
-    
-    .sm\\:hidden { display: none; }
-    .md\\:flex-row { flex-direction: row; }
-    .md\\:w-auto { width: auto; }
 }

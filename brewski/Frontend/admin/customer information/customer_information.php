@@ -1,5 +1,6 @@
 <?php
-// Mock Data - Updated statuses to Active, Locked, Pending
+// Mock data - replace with a query against brewski_db once the DB layer exists.
+// Statuses: Active, Pending, Locked.
 $customers = [
     ['id' => 'CUST-001', 'name' => 'Juan Dela Cruz', 'status' => 'Active', 'created_at' => '2023-01-15'],
     ['id' => 'CUST-002', 'name' => 'Maria Santos', 'status' => 'Locked', 'created_at' => '2023-03-22'],
@@ -7,260 +8,410 @@ $customers = [
     ['id' => 'CUST-004', 'name' => 'Ana de los Reyes', 'status' => 'Active', 'created_at' => '2024-08-01'],
     ['id' => 'CUST-005', 'name' => 'Jose Rizal', 'status' => 'Locked', 'created_at' => '2022-12-30'],
 ];
+
+// Rows per page for the client-side pager rendered below.
+$pageSize = 5;
 ?>
 
 <div class="page-container">
-    
+
     <!-- Header Section -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Customer Information</h1>
-        <p class="subtitle mt-1">Manage customer accounts, access levels, and verification status.</p>
+    <div class="page-header">
+        <h1 class="page-title">Customer Information</h1>
+        <p class="subtitle">Manage customer accounts, access levels, and verification status.</p>
     </div>
 
     <!-- Toolbar: Search & Filter -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
-        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-            
-            <!-- Left: Inputs -->
-            <div class="flex flex-1 w-full md:w-auto gap-3">
-                <div class="relative flex-1 max-w-xs">
-                    <input type="text" id="searchInput" placeholder="Search by name or ID..." 
-                           class="toolbar-input pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm w-full transition-shadow">
-                    <!-- Search Icon -->
-                    <svg class="absolute left-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-                
-                <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white cursor-pointer min-w-[140px]">
-                    <option value="all">All Statuses</option>
-                    <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Locked">Locked</option>
-                </select>
+    <div class="toolbar">
+        <div class="toolbar-filters">
+            <div class="search-field">
+                <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="searchInput" class="toolbar-input" placeholder="Search by name or ID..." aria-label="Search customers">
             </div>
 
-            <!-- Right: Bulk Actions (Hidden by default) -->
-            <div id="bulkActions" class="hidden bulk-actions-bar animate-fade-in">
-                <span class="text-sm text-gray-600 font-medium mr-2"><span id="selectedCount">0</span> selected</span>
-                <button onclick="deleteSelected()" class="btn-danger-outline">
-                    Delete Selected
-                </button>
-            </div>
+            <select id="statusFilter" class="toolbar-select" aria-label="Filter by status">
+                <option value="all">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Pending">Pending</option>
+                <option value="Locked">Locked</option>
+            </select>
+        </div>
+
+        <!-- Bulk Actions (revealed by .visible once rows are selected) -->
+        <div id="bulkActions" class="bulk-actions-bar">
+            <span><span class="bulk-count" id="selectedCount">0</span> selected</span>
+            <button type="button" id="deleteSelectedBtn" class="btn btn-delete">Delete selected</button>
         </div>
     </div>
 
     <!-- Table Container -->
-    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="data-table min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+    <div class="table-card">
+        <div class="table-scroll">
+            <table class="data-table table-wide">
+                <thead>
                     <tr>
-                        <th scope="col" class="w-12 px-6 py-4 text-left">
-                            <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4">
+                        <th class="col-check">
+                            <input type="checkbox" id="selectAll" class="row-checkbox" aria-label="Select all customers on this page">
                         </th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer No.</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Created Date</th>
-                        <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th>Customer No.</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th class="col-actions">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200" id="customerTableBody">
+                <tbody id="customerTableBody">
                     <?php foreach ($customers as $c): ?>
-                    <tr class="hover:bg-gray-50 transition-colors duration-150 group" data-id="<?= htmlspecialchars($c['id']) ?>" data-name="<?= strtolower(htmlspecialchars($c['name'])) ?>" data-status="<?= htmlspecialchars($c['status']) ?>">
-                        
-                        <!-- Checkbox Cell -->
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <input type="checkbox" class="row-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer w-4 h-4" value="<?= htmlspecialchars($c['id']) ?>">
+                    <tr data-id="<?= htmlspecialchars($c['id']) ?>"
+                        data-name="<?= htmlspecialchars($c['name']) ?>"
+                        data-status="<?= htmlspecialchars($c['status']) ?>"
+                        data-created="<?= htmlspecialchars($c['created_at']) ?>">
+
+                        <td class="col-check">
+                            <input type="checkbox" class="row-checkbox" value="<?= htmlspecialchars($c['id']) ?>" aria-label="Select <?= htmlspecialchars($c['name']) ?>">
                         </td>
 
-                        <!-- ID Cell -->
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">#<?= htmlspecialchars($c['id']) ?></td>
+                        <td><span class="cell-id">#<?= htmlspecialchars($c['id']) ?></span></td>
 
-                        <!-- Name Cell -->
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?= htmlspecialchars($c['name']) ?></td>
+                        <td><span class="cell-strong js-name"><?= htmlspecialchars($c['name']) ?></span></td>
 
-                        <!-- Status Badge Cell -->
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td>
                             <?php
-                            // Map status to specific badge classes
-                            $badgeClass = match($c['status']) {
-                                'Active'   => 'badge-active',
-                                'Pending'  => 'badge-pending',
-                                'Locked'   => 'badge-locked', // Renamed from blocked
-                                default     => 'badge-inactive'
+                            $badgeClass = match ($c['status']) {
+                                'Active'  => 'badge-active',
+                                'Pending' => 'badge-pending',
+                                'Locked'  => 'badge-locked',
+                                default   => 'badge-inactive',
                             };
                             ?>
-                            <span class="badge <?= $badgeClass ?>">
-                                <?= htmlspecialchars($c['status']) ?>
-                            </span>
+                            <span class="js-status"><span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($c['status']) ?></span></span>
                         </td>
 
-                        <!-- Date Cell -->
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($c['created_at']) ?></td>
+                        <td><span class="cell-muted js-created"><?= htmlspecialchars($c['created_at']) ?></span></td>
 
-                        <!-- Actions Cell (Text Buttons) -->
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                
-                                <!-- View Button (Blue) -->
-                                <button onclick="viewCustomer('<?= htmlspecialchars($c['id']) ?>')" class="action-text-btn text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors">
-                                    View
-                                </button>
-                                
-                                <!-- Edit Button (Orange/Yellow) -->
-                                <button onclick="editCustomer('<?= htmlspecialchars($c['id']) ?>')" class="action-text-btn text-orange-600 hover:text-orange-800 hover:bg-orange-50 px-2 py-1 rounded transition-colors">
-                                    Edit
-                                </button>
-                                
-                                <!-- Delete Button (Red) -->
-                                <button onclick="deleteCustomer('<?= htmlspecialchars($c['id']) ?>')" class="action-text-btn text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors">
-                                    Delete
-                                </button>
+                        <td class="col-actions">
+                            <div class="table-actions">
+                                <button type="button" class="btn btn-view" data-action="view">View</button>
+                                <button type="button" class="btn btn-edit" data-action="edit">Edit</button>
+                                <button type="button" class="btn btn-delete" data-action="delete">Delete</button>
                             </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>
-                    
+
                     <!-- Empty State Row -->
                     <tr id="noResultsRow" class="hidden">
-                        <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500 bg-gray-50/50">
-                            <p class="font-medium">No customers found</p>
-                            <p class="mt-1 text-gray-400">Try adjusting your search or filter criteria.</p>
+                        <td colspan="6" class="empty-cell">
+                            <div class="empty-state">
+                                <p class="empty-title">No customers found</p>
+                                <p class="empty-hint">Try adjusting your search or filter criteria.</p>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Pagination Footer -->
-        <div class="pagination-footer bg-white px-6 py-4 border-t border-gray-200">
-            <div class="flex-1 flex justify-between sm:hidden">
-                <a href="#" class="page-link">Previous</a>
-                <a href="#" class="page-link ml-3">Next</a>
-            </div>
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-sm text-gray-700">
-                        Showing <span class="font-medium">1</span> to <span class="font-medium"><?= count($customers) ?></span> of <span class="font-medium"><?= count($customers) ?></span> results
-                    </p>
-                </div>
-                <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <a href="#" class="page-link rounded-l-md">
-                            <span class="sr-only">Previous</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                        </a>
-                        <a href="#" class="page-link active">1</a>
-                        <a href="#" class="page-link">2</a>
-                        <a href="#" class="page-link rounded-r-md">
-                            <span class="sr-only">Next</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                        </a>
-                    </nav>
-                </div>
-            </div>
+        <div class="pagination-footer">
+            <p class="pagination-info" id="pageInfo"></p>
+            <div class="pagination-nav" id="paginationNav"></div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    // Runs immediately rather than on DOMContentLoaded: admin.js injects this markup
+    // into the dashboard and re-executes the script, by which point DOMContentLoaded
+    // has already fired (and refiring it here would never happen).
+    (function () {
+        const pageSize = <?= (int) $pageSize ?>;
+
         const searchInput = document.getElementById('searchInput');
         const statusFilter = document.getElementById('statusFilter');
         const selectAllCb = document.getElementById('selectAll');
-        const rows = document.querySelectorAll('#customerTableBody tr:not(#noResultsRow)');
+        const tbody = document.getElementById('customerTableBody');
         const noResultsRow = document.getElementById('noResultsRow');
         const bulkActions = document.getElementById('bulkActions');
         const selectedCountSpan = document.getElementById('selectedCount');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        const paginationNav = document.getElementById('paginationNav');
 
         if (!searchInput) return;
 
-        // 1. Filter Logic
-        function applyFilters() {
-            const term = searchInput.value.toLowerCase();
+        const STATUS_CLASS = {
+            Active: 'badge-active',
+            Pending: 'badge-pending',
+            Locked: 'badge-locked'
+        };
+
+        let allRows = Array.from(tbody.querySelectorAll('tr[data-id]'));
+        let filteredRows = allRows.slice();
+        let currentPage = 1;
+
+        // --- Render helpers ---
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function statusBadge(status) {
+            return '<span class="badge ' + (STATUS_CLASS[status] || 'badge-inactive') + '">' +
+                escapeHtml(status) + '</span>';
+        }
+
+        function statusOptions(selected) {
+            return ['Active', 'Pending', 'Locked'].map(function (status) {
+                return '<option value="' + status + '"' + (status === selected ? ' selected' : '') + '>' +
+                    status + '</option>';
+            }).join('');
+        }
+
+        // The rows belonging to the page currently on screen
+        function currentPageRows() {
+            const start = (currentPage - 1) * pageSize;
+            return filteredRows.slice(start, start + pageSize);
+        }
+
+        // --- Filtering + pagination ---
+
+        function render() {
+            const term = searchInput.value.trim().toLowerCase();
             const status = statusFilter.value;
-            let visibleCount = 0;
 
-            rows.forEach(row => {
-                const name = row.dataset.name || "";
-                const rowStatus = row.dataset.status || "";
-                
-                const matchesSearch = name.includes(term);
-                const matchesStatus = (status === 'all') || (rowStatus === status);
+            filteredRows = allRows.filter(function (row) {
+                const matchesTerm = !term ||
+                    row.dataset.name.toLowerCase().includes(term) ||
+                    row.dataset.id.toLowerCase().includes(term);
+                const matchesStatus = status === 'all' || row.dataset.status === status;
 
-                if (matchesSearch && matchesStatus) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
+                return matchesTerm && matchesStatus;
             });
 
-            if (visibleCount === 0) {
-                noResultsRow.classList.remove('hidden');
-            } else {
-                noResultsRow.classList.add('hidden');
-            }
-            
-            selectAllCb.checked = false;
+            const pageCount = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+            if (currentPage > pageCount) currentPage = pageCount;
+
+            const pageRows = currentPageRows();
+            const start = (currentPage - 1) * pageSize;
+
+            allRows.forEach(function (row) { row.classList.add('hidden'); });
+            pageRows.forEach(function (row) { row.classList.remove('hidden'); });
+
+            noResultsRow.classList.toggle('hidden', filteredRows.length > 0);
+
+            pageInfo.textContent = filteredRows.length === 0
+                ? 'No results'
+                : 'Showing ' + (start + 1) + ' to ' + Math.min(start + pageSize, filteredRows.length) +
+                  ' of ' + filteredRows.length + ' results';
+
+            renderPagination(pageCount);
+            syncSelectAll();
             updateBulkUI();
         }
 
-        searchInput.addEventListener('input', applyFilters);
-        statusFilter.addEventListener('change', applyFilters);
+        function renderPagination(pageCount) {
+            paginationNav.innerHTML = '';
 
-        // 2. Selection Logic
+            paginationNav.appendChild(pageButton('Previous', currentPage === 1, false, function () {
+                currentPage--;
+                render();
+            }));
+
+            for (let page = 1; page <= pageCount; page++) {
+                paginationNav.appendChild(pageButton(String(page), false, page === currentPage, function () {
+                    currentPage = page;
+                    render();
+                }));
+            }
+
+            paginationNav.appendChild(pageButton('Next', currentPage === pageCount, false, function () {
+                currentPage++;
+                render();
+            }));
+        }
+
+        function pageButton(label, disabled, isActive, onClick) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'page-link' + (isActive ? ' active' : '');
+            button.textContent = label;
+            button.disabled = disabled;
+            if (isActive) button.setAttribute('aria-current', 'page');
+            button.addEventListener('click', onClick);
+
+            return button;
+        }
+
+        // --- Selection ---
+
+        function syncSelectAll() {
+            const pageRows = currentPageRows();
+            const checked = pageRows.filter(function (row) {
+                const box = row.querySelector('.row-checkbox');
+                return box && box.checked;
+            }).length;
+
+            selectAllCb.checked = pageRows.length > 0 && checked === pageRows.length;
+            selectAllCb.indeterminate = checked > 0 && checked < pageRows.length;
+        }
+
         function updateBulkUI() {
-            const checked = document.querySelectorAll('.row-checkbox:checked');
-            const count = checked.length;
-            
+            const count = tbody.querySelectorAll('.row-checkbox:checked').length;
             selectedCountSpan.textContent = count;
-            
-            if (count > 0) {
-                bulkActions.classList.remove('hidden');
-                bulkActions.classList.add('flex');
-            } else {
-                bulkActions.classList.add('hidden');
-                bulkActions.classList.remove('flex');
-            }
+            bulkActions.classList.toggle('visible', count > 0);
         }
 
-        document.querySelectorAll('.row-checkbox').forEach(cb => {
-            cb.addEventListener('change', () => {
-                const totalVisible = Array.from(rows).filter(r => r.style.display !== 'none').length;
-                const checkedVisible = Array.from(document.querySelectorAll('.row-checkbox:checked')).filter(c => c.closest('tr').style.display !== 'none').length;
-                
-                selectAllCb.checked = (checkedVisible === totalVisible && totalVisible > 0);
-                updateBulkUI();
+        function resetSelection() {
+            tbody.querySelectorAll('.row-checkbox:checked').forEach(function (box) {
+                box.checked = false;
             });
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = false;
+        }
+
+        // --- Row actions ---
+
+        function paintRow(row) {
+            row.querySelector('.js-name').textContent = row.dataset.name;
+            row.querySelector('.js-status').innerHTML = statusBadge(row.dataset.status);
+            row.querySelector('.js-created').textContent = row.dataset.created;
+        }
+
+        function viewCustomer(row) {
+            const data = row.dataset;
+
+            window.openAdminModal({
+                title: 'Customer ' + data.id,
+                body: '<dl class="detail-list">' +
+                        '<dt>Customer No.</dt><dd>#' + escapeHtml(data.id) + '</dd>' +
+                        '<dt>Name</dt><dd>' + escapeHtml(data.name) + '</dd>' +
+                        '<dt>Status</dt><dd>' + statusBadge(data.status) + '</dd>' +
+                        '<dt>Created Date</dt><dd>' + escapeHtml(data.created) + '</dd>' +
+                      '</dl>'
+            });
+        }
+
+        function editCustomer(row) {
+            const data = row.dataset;
+
+            window.openAdminModal({
+                title: 'Edit customer ' + data.id,
+                body: '<form class="form-grid" id="customerEditForm">' +
+                        '<div class="form-field form-field-full">' +
+                            '<label for="customerEditName">Name</label>' +
+                            '<input type="text" id="customerEditName" value="' + escapeHtml(data.name) + '" required>' +
+                        '</div>' +
+                        '<div class="form-field">' +
+                            '<label for="customerEditStatus">Status</label>' +
+                            '<select id="customerEditStatus">' + statusOptions(data.status) + '</select>' +
+                        '</div>' +
+                        '<div class="form-field">' +
+                            '<label for="customerEditCreated">Created date</label>' +
+                            '<input type="date" id="customerEditCreated" value="' + escapeHtml(data.created) + '" required>' +
+                        '</div>' +
+                      '</form>',
+                footer: [
+                    { label: 'Cancel', className: 'btn-secondary' },
+                    {
+                        label: 'Save changes',
+                        className: 'btn-primary',
+                        onClick: function (handle) {
+                            const form = handle.element.querySelector('#customerEditForm');
+
+                            // Returning false leaves the dialog open so the field can be corrected
+                            if (!form.reportValidity()) return false;
+
+                            // TODO: persist these values, then repaint from the response
+                            row.dataset.name = handle.element.querySelector('#customerEditName').value.trim();
+                            row.dataset.status = handle.element.querySelector('#customerEditStatus').value;
+                            row.dataset.created = handle.element.querySelector('#customerEditCreated').value;
+
+                            paintRow(row);
+                            render();
+
+                            return true;
+                        }
+                    }
+                ]
+            });
+        }
+
+        function deleteCustomer(row) {
+            if (!confirm('Delete customer #' + row.dataset.id + '? This action cannot be undone.')) return;
+
+            // TODO: delete on the server first, then drop the row
+            allRows = allRows.filter(function (candidate) { return candidate !== row; });
+            row.remove();
+            render();
+        }
+
+        function deleteSelected() {
+            const checked = Array.from(tbody.querySelectorAll('.row-checkbox:checked'));
+            if (checked.length === 0) return;
+
+            if (!confirm('Delete ' + checked.length + ' selected customer(s)? This action cannot be undone.')) return;
+
+            // TODO: delete on the server first, then drop the rows
+            checked.forEach(function (box) {
+                const row = box.closest('tr[data-id]');
+                allRows = allRows.filter(function (candidate) { return candidate !== row; });
+                row.remove();
+            });
+
+            render();
+        }
+
+        // --- Events ---
+
+        searchInput.addEventListener('input', function () {
+            currentPage = 1;
+            resetSelection();
+            render();
         });
 
-        selectAllCb.addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            rows.forEach(row => {
-                if (row.style.display !== 'none') {
-                    const cb = row.querySelector('.row-checkbox');
-                    if (cb) cb.checked = isChecked;
-                }
+        statusFilter.addEventListener('change', function () {
+            currentPage = 1;
+            resetSelection();
+            render();
+        });
+
+        selectAllCb.addEventListener('change', function () {
+            currentPageRows().forEach(function (row) {
+                const box = row.querySelector('.row-checkbox');
+                if (box) box.checked = selectAllCb.checked;
             });
             updateBulkUI();
         });
 
-        // 3. Global Actions
-        window.viewCustomer = (id) => alert(`Viewing details for ${id}`);
-        window.editCustomer = (id) => alert(`Editing record for ${id}`);
-        window.deleteCustomer = (id) => {
-            if(confirm(`Are you sure you want to delete Customer #${id}? This action cannot be undone.`)) {
-                alert(`Deleted ${id}`);
-                // In real app: Remove row from DOM here
+        // Delegated so rows replaced by an edit or delete keep working
+        tbody.addEventListener('change', function (event) {
+            if (event.target.classList.contains('row-checkbox')) {
+                syncSelectAll();
+                updateBulkUI();
             }
-        };
-        window.deleteSelected = () => {
-            const ids = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-            if(ids.length === 0) return;
-            if(confirm(`Delete ${ids.length} selected customers?`)) {
-                alert(`Batch deleted: ${ids.join(', ')}`);
-            }
-        };
-    });
+        });
+
+        tbody.addEventListener('click', function (event) {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+
+            const row = button.closest('tr[data-id]');
+            if (!row) return;
+
+            if (button.dataset.action === 'view') viewCustomer(row);
+            if (button.dataset.action === 'edit') editCustomer(row);
+            if (button.dataset.action === 'delete') deleteCustomer(row);
+        });
+
+        deleteSelectedBtn.addEventListener('click', deleteSelected);
+
+        render();
+    })();
 </script>

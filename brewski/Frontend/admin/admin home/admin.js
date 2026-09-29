@@ -65,10 +65,175 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
+     * Re-creates every <script> inside a container so the browser actually runs it.
+     * Assigning HTML through innerHTML leaves <script> tags inert, so a loaded page's
+     * own behaviour (filters, bulk actions) would silently never bind without this.
+     * @param {HTMLElement} container - The element whose scripts should be executed
+     */
+    function runScripts(container) {
+        container.querySelectorAll('script').forEach(function (oldScript) {
+            var newScript = document.createElement('script');
+
+            // Carry over attributes (src, type, etc.) so both inline and external scripts work
+            Array.prototype.forEach.call(oldScript.attributes, function (attr) {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+
+            newScript.textContent = oldScript.textContent;
+
+            // Replacing the node re-parses it, which is what triggers execution
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+
+    // The dialog currently on screen, if any. Tracked so navigating to another
+    // view can tear it down - modals are appended to <body>, so clearing
+    // #dynamicView would leave them floating over the next page.
+    var activeModal = null;
+
+    /**
+     * Opens a modal dialog and returns a handle that closes it again.
+     * Built on demand so a page loaded into #dynamicView can ask for a dialog
+     * without carrying its own markup, and torn down completely on close so
+     * listeners don't pile up as the admin moves between views.
+     * @param {{title: string, body: (string|HTMLElement), footer?: Array}} options
+     *        Each footer entry takes {label, className, onClick, closeOnClick}.
+     *        An onClick returning false keeps the dialog open (failed validation).
+     * @returns {{close: Function, element: HTMLElement}}
+     */
+    function openModal(options) {
+        // Never stack dialogs - replacing keeps focus and listeners predictable
+        if (activeModal) {
+            activeModal.close();
+        }
+
+        var backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop';
+
+        var modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+
+        var previouslyFocused = document.activeElement;
+        var handle = { close: close, element: modal };
+
+        function close() {
+            document.removeEventListener('keydown', handleKeydown);
+            backdrop.remove();
+
+            if (activeModal === handle) {
+                activeModal = null;
+            }
+
+            if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+                previouslyFocused.focus();
+            }
+        }
+
+        function handleKeydown(event) {
+            if (event.key === 'Escape') {
+                close();
+            }
+        }
+
+        // --- Header ---
+        var header = document.createElement('div');
+        header.className = 'modal-header';
+
+        var title = document.createElement('h2');
+        title.className = 'modal-title';
+        title.textContent = options.title || '';
+
+        var closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'modal-close';
+        closeBtn.setAttribute('aria-label', 'Close dialog');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.addEventListener('click', close);
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        // --- Body ---
+        var body = document.createElement('div');
+        body.className = 'modal-body';
+
+        if (typeof options.body === 'string') {
+            body.innerHTML = options.body;
+        } else if (options.body) {
+            body.appendChild(options.body);
+        }
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+
+        // --- Footer ---
+        if (options.footer && options.footer.length) {
+            var footer = document.createElement('div');
+            footer.className = 'modal-footer';
+
+            options.footer.forEach(function (buttonConfig) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn ' + (buttonConfig.className || 'btn-secondary');
+                button.textContent = buttonConfig.label;
+
+                button.addEventListener('click', function () {
+                    var shouldClose = buttonConfig.onClick
+                        ? buttonConfig.onClick(handle) !== false
+                        : true;
+
+                    if (shouldClose && buttonConfig.closeOnClick !== false) {
+                        close();
+                    }
+                });
+
+                footer.appendChild(button);
+            });
+
+            modal.appendChild(footer);
+        }
+
+        backdrop.appendChild(modal);
+
+        // Clicking the dimmed area (but not the dialog itself) dismisses it
+        backdrop.addEventListener('click', function (event) {
+            if (event.target === backdrop) {
+                close();
+            }
+        });
+
+        document.body.appendChild(backdrop);
+        document.addEventListener('keydown', handleKeydown);
+
+        // Prefer the first form field, falling back to the close button
+        var focusTarget = modal.querySelector('.modal-body input, .modal-body select, .modal-body textarea')
+            || modal.querySelector('button');
+
+        if (focusTarget) {
+            focusTarget.focus();
+        }
+
+        activeModal = handle;
+
+        return handle;
+    }
+
+    // Exposed so the pages fetched into #dynamicView can open dialogs
+    window.openAdminModal = openModal;
+
+    /**
      * Loads content dynamically via Fetch API
      * @param {string} viewIdentifier - Either "home" or a relative file path
      */
     function loadView(viewIdentifier) {
+        // A dialog opened by the outgoing page lives on <body>, so it would
+        // otherwise survive the swap and hover over the next view.
+        if (activeModal) {
+            activeModal.close();
+        }
+
         // Reset views: Hide everything except the one we are about to show
         
         // Case 1: Static Home Page
@@ -105,7 +270,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(html => {
                     // Inject the fetched HTML into the container
                     dynamicView.innerHTML = html;
-                    
+
+                    // innerHTML alone won't execute the page's scripts - do it explicitly
+                    runScripts(dynamicView);
+
                     // Optional: Scroll to top of main content area after load
                     window.scrollTo(0, 0);
                 })

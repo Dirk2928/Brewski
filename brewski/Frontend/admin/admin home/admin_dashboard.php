@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brewski Admin Dashboard</title>
-    <link rel="stylesheet" href="admin.css">
+    <!-- The ?v= stamps are the file mtimes. Without them the browser happily
+         serves a cached admin.css/admin.js after an edit, so a fixed stylesheet
+         still renders as the old broken one until a manual hard refresh. -->
+    <link rel="stylesheet" href="../admin.css?v=<?= filemtime(__DIR__ . '/../admin.css') ?>">
 </head>
 <body>
 
@@ -44,16 +47,18 @@
             
             <!-- Submenu Items (Dynamic Loaders) -->
             <div class="submenu" id="customerSubmenu">
-                <!-- Note: Paths are relative to this file (admin/) -->
-                <button type="button" class="nav-item nav-subitem" data-view="../customer_management/customer_information.php">
+                <!-- Note: Paths are resolved by fetch() relative to THIS document (admin home/),
+                     so they must match the folder names on disk. %20 is the space in
+                     "customer information". -->
+                <button type="button" class="nav-item nav-subitem" data-view="../customer%20information/customer_information.php">
                     Customer Information
                 </button>
-                
-                <button type="button" class="nav-item nav-subitem" data-view="../customer_management/transactions.php">
+
+                <button type="button" class="nav-item nav-subitem" data-view="../customer%20information/transactions.php">
                     Transactions
                 </button>
-                
-                <button type="button" class="nav-item nav-subitem" data-view="../customer_management/authentication_logs.php">
+
+                <button type="button" class="nav-item nav-subitem" data-view="../customer%20information/authentication_logs.php">
                     Authentication Logs
                 </button>
             </div>
@@ -109,6 +114,6 @@
 
     <!-- Link External JS -->
     <!-- defer ensures HTML is loaded before script runs -->
-    <script src="admin.js" defer></script>
+    <script src="admin.js?v=<?= filemtime(__DIR__ . '/admin.js') ?>" defer></script>
 </body>
 </html>
