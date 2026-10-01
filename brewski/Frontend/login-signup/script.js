@@ -1,96 +1,236 @@
-// script.js
+
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- LOGIN FORM LOGIC ---
+
+
     const loginForm = document.getElementById('login-form');
+
     if (loginForm) {
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent default page reload
 
-            const firstName = document.getElementById('first_name').value.trim();
-            const password = document.getElementById('password').value;
+        loginForm.addEventListener('submit', function (event) {
 
-            // Clear previous errors
-            document.getElementById('first_name-error').style.display = 'none';
-            document.getElementById('password-error').style.display = 'none';
-            document.getElementById('login-error').style.display = 'none';
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+
+            const emailError = document.getElementById('email-error');
+            const passwordError = document.getElementById('password-error');
 
             let hasError = false;
 
-            // Validation
-            if (firstName === '') {
-                showError('first_name', 'Enter your first name.');
+
+            if (emailError) {
+                emailError.textContent = '';
+                emailError.style.display = 'none';
+            }
+
+            if (passwordError) {
+                passwordError.textContent = '';
+                passwordError.style.display = 'none';
+            }
+
+            email.removeAttribute('aria-invalid');
+            password.removeAttribute('aria-invalid');
+
+
+            if (email.value.trim() === '') {
+
+                showError(
+                    'email',
+                    'Enter your email address.'
+                );
+
+                hasError = true;
+
+            } else if (!isValidEmail(email.value.trim())) {
+
+                showError(
+                    'email',
+                    'Please enter a valid email address.'
+                );
+
                 hasError = true;
             }
 
-            if (password === '') {
-                showError('password', 'Enter your password.');
+
+            if (password.value === '') {
+
+                showError(
+                    'password',
+                    'Enter your password.'
+                );
+
                 hasError = true;
             }
 
-            // Simulate login
-            if (!hasError) {
-                const submitBtn = document.querySelector('.btn');
+
+            if (hasError) {
+                event.preventDefault();
+                return;
+            }
+
+
+            const submitBtn = loginForm.querySelector('.btn');
+
+            if (submitBtn) {
                 submitBtn.textContent = 'Logging in...';
                 submitBtn.disabled = true;
-
-                setTimeout(() => {
-                    localStorage.setItem('brewski_user', firstName);
-                    window.location.href = 'index.html'; 
-                }, 1000);
             }
+
         });
     }
 
-    // --- SIGNUP FORM LOGIC ---
+    /* ---------- Show / hide password ---------- */
+const passwordInput  = document.getElementById('password');
+const passwordToggle = document.getElementById('toggle-password');
+
+if (passwordInput && passwordToggle) {
+
+    passwordToggle.addEventListener('click', () => {
+
+        const isHidden = passwordInput.type === 'password';
+
+        passwordInput.type = isHidden ? 'text' : 'password';
+
+        passwordToggle.textContent = isHidden ? '👁' : '👁';
+        passwordToggle.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+        passwordToggle.setAttribute(
+            'aria-label',
+            isHidden ? 'Hide password' : 'Show password'
+        );
+
+        // keep the caret inside the field
+        passwordInput.focus();
+    });
+}
+
+
+
     const signupForm = document.getElementById('signup-form');
+
     if (signupForm) {
-        signupForm.addEventListener('submit', function(event) {
-            event.preventDefault();
 
-            const firstName = document.getElementById('first_name').value.trim();
-            const lastName = document.getElementById('last_name').value.trim();
-            const password = document.getElementById('password').value;
+        signupForm.addEventListener('submit', function (event) {
 
-            // Clear previous errors
-            document.querySelectorAll('.field__error').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('input').forEach(el => el.removeAttribute('aria-invalid'));
+            const firstName = document.getElementById('first_name');
+            const lastName = document.getElementById('last_name');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
 
             let hasError = false;
 
-            if (firstName === '') {
-                showError('first_name', 'Enter your first name.');
-                hasError = true;
-            }
-            if (lastName === '') {
-                showError('last_name', 'Enter your last name.');
-                hasError = true;
-            }
-            if (password.length < 8) {
-                showError('password', 'Use at least 8 characters.');
+
+            document.querySelectorAll('.field__error').forEach(error => {
+                error.textContent = '';
+                error.style.display = 'none';
+            });
+
+            document.querySelectorAll('input').forEach(input => {
+                input.removeAttribute('aria-invalid');
+            });
+
+
+            if (firstName.value.trim() === '') {
+
+                showError(
+                    'first_name',
+                    'Enter your first name.'
+                );
+
                 hasError = true;
             }
 
-            if (!hasError) {
-                const submitBtn = document.querySelector('.btn');
+
+            if (lastName.value.trim() === '') {
+
+                showError(
+                    'last_name',
+                    'Enter your last name.'
+                );
+
+                hasError = true;
+            }
+
+
+            if (email.value.trim() === '') {
+
+                showError(
+                    'email',
+                    'Enter your email address.'
+                );
+
+                hasError = true;
+
+            } else if (!isValidEmail(email.value.trim())) {
+
+                showError(
+                    'email',
+                    'Please enter a valid email address.'
+                );
+
+                hasError = true;
+            }
+
+
+            if (password.value.length < 8) {
+
+                showError(
+                    'password',
+                    'Use at least 8 characters.'
+                );
+
+                hasError = true;
+            }
+
+
+            if (hasError) {
+
+                event.preventDefault();
+                return;
+            }
+
+
+            const submitBtn = signupForm.querySelector('.btn');
+
+            if (submitBtn) {
                 submitBtn.textContent = 'Creating account...';
                 submitBtn.disabled = true;
-
-                setTimeout(() => {
-                    window.location.href = 'login.html'; 
-                }, 1000);
             }
+
         });
     }
 
-    // --- HELPER FUNCTION FOR ERRORS ---
+
+
+    function isValidEmail(email) {
+
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+
+
     function showError(fieldId, message) {
-        const errorEl = document.getElementById(fieldId + '-error');
-        if (errorEl) {
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            document.getElementById(fieldId).setAttribute('aria-invalid', 'true');
+
+        const errorElement =
+            document.getElementById(fieldId + '-error');
+
+        const inputElement =
+            document.getElementById(fieldId);
+
+
+        if (errorElement) {
+
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+
+        if (inputElement) {
+
+            inputElement.setAttribute(
+                'aria-invalid',
+                'true'
+            );
         }
     }
+
 });

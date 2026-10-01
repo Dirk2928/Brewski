@@ -1,9 +1,6 @@
 <?php
-// menu.php
 
-// Simulated Product Database
 $products = [
-    // Coffee
     [
         'id' => 1,
         'name' => 'Black Coffee',
@@ -45,7 +42,6 @@ $products = [
         'image' => 'icedcoffee.png'
     ],
 
-    // Non-Coffee
     [
         'id' => 6,
         'name' => 'Matcha Latte',
@@ -71,7 +67,6 @@ $products = [
         'image' => 'cafelatte.png'
     ],
 
-    // Frappe
     [
         'id' => 9,
         'name' => 'Caramel Frappe',
@@ -97,7 +92,6 @@ $products = [
         'image' => 'blackcoffee.png'
     ],
 
-    // Tea
     [
         'id' => 12,
         'name' => 'Classic Milk Tea',
@@ -135,13 +129,13 @@ $products = [
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="menu.css">
     
-    <!-- Lucide Icons Script -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-    <!-- Top Navigation Bar -->
+    
     <header class="topbar">
         <div class="topbar__brand">Brewski</div>
         <nav class="topbar__nav">
@@ -164,10 +158,10 @@ $products = [
         </nav>
     </header>
 
-    <!-- Main Content Area -->
+    
     <main class="main-content">
         
-        <!-- Header Section -->
+        
         <section class="page-header">
             <div>
                 <h1>Our Menu</h1>
@@ -175,7 +169,7 @@ $products = [
             </div>
         </section>
 
-        <!-- Filter Section -->
+        
         <section class="filter-section">
             <div class="filter-group">
                 <h3>Category</h3>
@@ -198,12 +192,12 @@ $products = [
             </div>
         </section>
 
-        <!-- Product Grid -->
+        
         <section class="category">
             <div class="product-grid" id="menu-grid">
                 
                 <?php foreach ($products as $product): ?>
-                    <!-- Product Card -->
+                    
                     <div class="product-card" 
                          data-name="<?= htmlspecialchars($product['name']) ?>" 
                          data-base-price="<?= $product['price'] ?>"
@@ -225,7 +219,7 @@ $products = [
 
             </div>
             
-            <!-- No Results Message (Hidden by default) -->
+            
             <div id="no-results" class="no-results" style="display: none;">
                 <i data-lucide="coffee"></i>
                 <p>No drinks found matching your filters.</p>
@@ -234,7 +228,7 @@ $products = [
 
     </main>
 
-    <!-- CUSTOMIZATION MODAL (Same as Home) -->
+    
     <div class="modal-overlay" id="customization-modal">
         <div class="modal">
             <div class="modal__header">
@@ -248,7 +242,7 @@ $products = [
             </div>
             
             <div class="modal__body">
-                <!-- Temperature Selection -->
+                
                 <div class="option-group">
                     <h3>Temperature</h3>
                     <div class="option-buttons" data-group="temp">
@@ -261,7 +255,7 @@ $products = [
                     </div>
                 </div>
 
-                <!-- Size Selection -->
+                
                 <div class="option-group">
                     <h3>Size</h3>
                     <div class="option-buttons" data-group="size">
@@ -270,7 +264,7 @@ $products = [
                     </div>
                 </div>
 
-                <!-- Sugar Level Selection -->
+                
                 <div class="option-group">
                     <h3>Sugar Level</h3>
                     <div class="option-buttons" data-group="sugar">
@@ -282,7 +276,7 @@ $products = [
                     </div>
                 </div>
 
-                <!-- Add-ons Selection -->
+                
                 <div class="option-group">
                     <h3>Add-ons</h3>
                     <div class="option-buttons" data-group="addons">
@@ -292,7 +286,7 @@ $products = [
                     </div>
                 </div>
 
-                <!-- Special Instructions -->
+                
                 <div class="option-group">
                     <h3>Special Instructions</h3>
                     <textarea id="special-instructions" class="special-instructions" placeholder="e.g., Less ice, extra hot, no foam..." rows="3"></textarea>
