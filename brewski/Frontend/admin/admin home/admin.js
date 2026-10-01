@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Submenu Elements
     var customerParent = document.getElementById('customerParent');
     var customerSubmenu = document.getElementById('customerSubmenu');
+    var staffParent = document.getElementById('staffParent');
+    var staffSubmenu = document.getElementById('staffSubmenu');
 
     // --- HELPER FUNCTIONS ---
 
@@ -55,12 +57,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Logic for Parent Highlighting
-        // If a sub-item is clicked, highlight its parent ("Customer Management")
+        // If a sub-item is clicked, highlight its matching parent.
         if (clickedBtn && clickedBtn.classList.contains('nav-subitem')) {
-            customerParent.classList.add('active');
+            var parent = clickedBtn.closest('.submenu') === customerSubmenu
+                ? customerParent
+                : staffParent;
+
+            if (parent) parent.classList.add('active');
         } else {
-            // Otherwise, ensure parent is NOT highlighted
             customerParent.classList.remove('active');
+            staffParent.classList.remove('active');
         }
     }
 
@@ -346,7 +352,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 6. Main Navigation Click Handler (The Core Logic)
+    // 6. Staff Management Submenu Toggle
+    if (staffParent) {
+        staffParent.addEventListener('click', function () {
+            var isOpen = staffSubmenu.classList.toggle('open');
+            staffParent.setAttribute('aria-expanded', String(isOpen));
+        });
+    }
+
+    // 7. Main Navigation Click Handler (The Core Logic)
     navItems.forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault(); // Prevent default link behavior if any remain

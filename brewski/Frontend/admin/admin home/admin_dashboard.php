@@ -1,3 +1,50 @@
+<?php
+session_start();
+
+$adminName = $_SESSION['admin_name'] ?? 'Admin';
+
+$stats = [
+    'total_customers' => 0,
+    'today_sales' => 0,
+    'pending_orders' => 0,
+    'low_stock' => 0,
+];
+
+$mysqli = null;
+$hasDbConnection = false;
+
+try {
+    $mysqli = new mysqli('localhost', 'root', '', 'brewski_db');
+    $hasDbConnection = true;
+
+    $customerResult = $mysqli->query("SELECT COUNT(*) AS total FROM users WHERE role = 'CUSTOMER'");
+    if ($customerResult && $customerResult->num_rows > 0) {
+        $stats['total_customers'] = (int) $customerResult->fetch_assoc()['total'];
+    }
+
+    $salesResult = $mysqli->query("SELECT COALESCE(SUM(total_amount), 0) AS total FROM orders WHERE DATE(order_date) = CURDATE()");
+    if ($salesResult && $salesResult->num_rows > 0) {
+        $stats['today_sales'] = (float) $salesResult->fetch_assoc()['total'];
+    }
+
+    $pendingResult = $mysqli->query("SELECT COUNT(*) AS total FROM orders WHERE order_status = 'PENDING'");
+    if ($pendingResult && $pendingResult->num_rows > 0) {
+        $stats['pending_orders'] = (int) $pendingResult->fetch_assoc()['total'];
+    }
+
+    $stockResult = $mysqli->query("SELECT COUNT(*) AS total FROM products WHERE stock < 10");
+    if ($stockResult && $stockResult->num_rows > 0) {
+        $stats['low_stock'] = (int) $stockResult->fetch_assoc()['total'];
+    }
+} catch (Exception $e) {
+    $hasDbConnection = false;
+}
+
+if ($mysqli) {
+    $mysqli->close();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,8 +84,10 @@
             <!-- Home Button (Static) -->
             <button type="button" class="nav-item active" data-view="home">Home</button>
             
-            <!-- Product Management (Placeholder for now) -->
-            <button type="button" class="nav-item" data-view="products">Product Management</button>
+            <!-- Product Management -->
+            <button type="button" class="nav-item" data-view="../product%20management/product_management.php">
+                Product Management
+            </button>
 
             <!-- Customer Management Parent Toggle -->
             <button type="button" class="nav-item nav-parent" id="customerParent" aria-expanded="false" aria-controls="customerSubmenu">
@@ -63,10 +112,22 @@
                 </button>
             </div>
 
-            <!-- Other Placeholders -->
-            <button type="button" class="nav-item" data-view="staff">Staff Management</button>
-            <button type="button" class="nav-item" data-view="analytics">Analytics</button>
-            <button type="button" class="nav-item" data-view="logs">Activity Logs</button>
+            <!-- Staff Management Parent Toggle -->
+            <button type="button" class="nav-item nav-parent" id="staffParent" aria-expanded="false" aria-controls="staffSubmenu">
+                Staff Management
+            </button>
+
+            <!-- Staff Submenu Items (Dynamic Loaders) -->
+            <div class="submenu" id="staffSubmenu">
+                <button type="button" class="nav-item nav-subitem" data-view="../staff%20information/staff_information.php">
+                    Staff Information
+                </button>
+
+                <button type="button" class="nav-item nav-subitem" data-view="../staff%20information/transactions_handled.php">
+                    Transactions Handled
+                </button>
+            </div>
+
             <button type="button" class="nav-item" data-view="profile">Profile</button>
         </nav>
     </aside>
@@ -76,25 +137,25 @@
         
         <!-- 1. Static Home View (Shown by default) -->
         <section id="homeView">
-            <h1>Welcome, @Admin</h1>
+            <h1>Welcome, @<?= htmlspecialchars($adminName) ?></h1>
             <p class="subtitle">This page is for the overview of Brewski store activity.</p>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <p class="stat-label">Total Customers</p>
-                    <p class="stat-value">--</p>
+                    <p class="stat-value"><?= $hasDbConnection ? number_format($stats['total_customers']) : '--' ?></p>
                 </div>
                 <div class="stat-card">
                     <p class="stat-label">Today's Sales</p>
-                    <p class="stat-value">--</p>
+                    <p class="stat-value"><?= $hasDbConnection ? '₱' . number_format($stats['today_sales'], 2) : '--' ?></p>
                 </div>
                 <div class="stat-card">
                     <p class="stat-label">Pending Orders</p>
-                    <p class="stat-value">--</p>
+                    <p class="stat-value"><?= $hasDbConnection ? number_format($stats['pending_orders']) : '--' ?></p>
                 </div>
                 <div class="stat-card">
                     <p class="stat-label">Low Stock Items</p>
-                    <p class="stat-value">--</p>
+                    <p class="stat-value"><?= $hasDbConnection ? number_format($stats['low_stock']) : '--' ?></p>
                 </div>
             </div>
         </section>
