@@ -19,13 +19,13 @@
     <header class="topbar">
         <div class="topbar__brand">brewski</div>
         <nav class="topbar__nav">
-            <a href="index.html" class="topbar__link active">
+            <a href="customerhome.php" class="topbar__link active">
                 <i data-lucide="home"></i> Home
             </a>
-            <a href="menu.html" class="topbar__link">
+            <a href="customermenu.php" class="topbar__link">
                 <i data-lucide="coffee"></i> Menu
             </a>
-            <a href="cart.html" class="topbar__link cart-link">
+            <a href="customermenu.html" class="topbar__link cart-link">
                 <i data-lucide="shopping-cart"></i> Cart
                 <span class="cart-badge">0</span>
             </a>
