@@ -1,37 +1,82 @@
 <?php
+session_start();
+
 mysqli_report(MYSQLI_REPORT_OFF);
 
-$conn = new mysqli('localhost', 'root', '', 'brewski_db');
-$conn->set_charset('utf8mb4');
+$error = '';
+$token = $_GET['token'] ?? '';
 
-$token   = $_GET['token'] ?? '';
-$status  = 'invalid';
+if (!is_string($token) || !preg_match('/\A[a-f0-9]{64}\z/i', $token)) {
+    $error = 'This activation link is invalid or has already been used.';
+} else {
+    $conn = new mysqli('localhost', 'root', '', 'brewski_db');
 
-if (preg_match('/^[a-f0-9]{64}$/', $token)) {
-
-    $hash = hash('sha256', $token);
-
-    $stmt = $conn->prepare(
-        "SELECT user_id FROM users
-         WHERE activation_token = ? AND is_active = 0
-           AND activation_expires > NOW()
-         LIMIT 1"
-    );
-    $stmt->bind_param('s', $hash);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    if ($user) {
-        $upd = $conn->prepare(
-            "UPDATE users
-             SET is_active = 1, activation_token = NULL, activation_expires = NULL
-             WHERE user_id = ?"
+    if ($conn->connect_error) {
+        $error = 'Unable to connect to the database. Please try again later.';
+    } else {
+        $conn->set_charset('utf8mb4');
+        $token_hash = hash('sha256', $token);
+        $stmt = $conn->prepare(
+            "SELECT user_id, is_active, email_activation_expires
+             FROM users
+             WHERE email_activation_token = ?
+             LIMIT 1"
         );
-        $upd->bind_param('i', $user['user_id']);
-        $upd->execute();
-        $upd->close();
-        $status = 'success';
+
+        if (!$stmt) {
+            $error = 'Unable to verify this activation link. Please try again.';
+        } else {
+            $stmt->bind_param('s', $token_hash);
+            $stmt->execute();
+            $stmt->store_result();
+
+            if ($stmt->num_rows !== 1) {
+                $error = 'This activation link is invalid or has already been used.';
+            } else {
+                $stmt->bind_result($user_id, $is_active, $expires_at);
+                $stmt->fetch();
+
+                if ((int) $is_active === 1) {
+                    $_SESSION['signup_success'] = 'Your account is activated. Log in to receive a one-time code.';
+                    header('Location: login.php');
+                    exit;
+                }
+
+                if (!$expires_at || strtotime($expires_at) < time()) {
+                    $error = 'This activation link has expired. Please sign up again to receive a new one.';
+                } else {
+                    $update = $conn->prepare(
+                        "UPDATE users
+                         SET is_active = 1,
+                             activation_token = NULL,
+                             activation_expires = NULL,
+                             email_activation_token = NULL,
+                             email_activation_expires = NULL,
+                             updated_at = CURRENT_TIMESTAMP
+                         WHERE user_id = ? AND is_active = 0"
+                    );
+
+                    if (!$update) {
+                        $error = 'Unable to activate your account. Please try again.';
+                    } else {
+                        $update->bind_param('i', $user_id);
+
+                        if ($update->execute() && $update->affected_rows === 1) {
+                            $_SESSION['signup_success'] = 'Your account is activated. Log in to receive a one-time code.';
+                            header('Location: login.php');
+                            exit;
+                        }
+
+                        $error = 'Unable to activate your account. Please try again.';
+                        $update->close();
+                    }
+                }
+            }
+
+            $stmt->close();
+        }
+
+        $conn->close();
     }
 }
 ?>
@@ -40,32 +85,27 @@ if (preg_match('/^[a-f0-9]{64}$/', $token)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Account activation | brewski</title>
+    <title>Activate your account | brewski</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main class="auth" style="justify-content:center;align-items:center;">
+<main class="auth">
+    <aside class="side">
+        <p class="side__word">brew<span>ski</span></p>
+        <p class="side__line">Your favorite cup, ready when you are.</p>
+    </aside>
     <section class="auth__panel">
         <div class="auth__content">
             <img class="brand__logo" src="images/brewskilogo.png" alt="Brewski Logo">
             <p class="brand__name">brew<span>ski</span></p>
-
-            <?php if ($status === 'success'): ?>
-                <h1 class="auth__title">Account activated!</h1>
-                <p>Your email is confirmed. You can now log in.</p>
-                <a class="btn" href="login.php"
-                   style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
-                    Go to login
-                </a>
-            <?php else: ?>
-                <h1 class="auth__title">Link invalid or expired</h1>
-                <p>This activation link is no longer valid. Please sign up again to get a new one.</p>
-                <a class="btn" href="signup.php"
-                   style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
-                    Back to sign up
-                </a>
-            <?php endif; ?>
+            <h1 class="auth__title">Activation link unavailable</h1>
+            <p class="field__error" style="text-align:center;margin-bottom:1rem;">
+                <?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+            </p>
+            <p class="auth__switch"><a href="login.php">Go to login</a></p>
         </div>
     </section>
 </main>

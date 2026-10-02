@@ -1,11 +1,21 @@
 <?php
 session_start();
-
-require __DIR__ . '/mailer.php';
+require_once __DIR__ . '/email-service-client.php';
 
 mysqli_report(MYSQLI_REPORT_OFF);
 
-$conn = new mysqli('localhost', 'root', '', 'brewski_db');
+/*
+|--------------------------------------------------------------------------
+| Database Connection
+|--------------------------------------------------------------------------
+*/
+
+$conn = new mysqli(
+    'localhost',
+    'root',
+    '',
+    'brewski_db'
+);
 
 if ($conn->connect_error) {
     $conn = null;
@@ -13,10 +23,24 @@ if ($conn->connect_error) {
     $conn->set_charset('utf8mb4');
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| If already logged in
+|--------------------------------------------------------------------------
+*/
+
 if (isset($_SESSION['user_id'])) {
-    header('Location: ../customer/customer%20home/customerhome.php');
+    header('Location: ../customer/customer-home/customerhome.php');
     exit;
 }
+
+
+/*
+|--------------------------------------------------------------------------
+| Variables
+|--------------------------------------------------------------------------
+*/
 
 $error   = '';
 $success = '';
@@ -25,6 +49,13 @@ $first_name_value = '';
 $last_name_value  = '';
 $email_value      = '';
 
+
+/*
+|--------------------------------------------------------------------------
+| Signup
+|--------------------------------------------------------------------------
+*/
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $first_name = trim($_POST['first_name'] ?? '');
@@ -32,11 +63,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email      = trim($_POST['email'] ?? '');
     $password   = $_POST['password'] ?? '';
 
-    $first_name_value = htmlspecialchars($first_name, ENT_QUOTES, 'UTF-8');
-    $last_name_value  = htmlspecialchars($last_name, ENT_QUOTES, 'UTF-8');
-    $email_value      = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
 
-    if ($first_name === '' || $last_name === '' || $email === '' || $password === '') {
+    /*
+    |--------------------------------------------------------------------------
+    | Preserve form values
+    |--------------------------------------------------------------------------
+    */
+
+    $first_name_value = htmlspecialchars(
+        $first_name,
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $last_name_value = htmlspecialchars(
+        $last_name,
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $email_value = htmlspecialchars(
+        $email,
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $first_name === '' ||
+        $last_name === '' ||
+        $email === '' ||
+        $password === ''
+    ) {
 
         $error = 'Please fill in all fields.';
 
@@ -49,130 +113,357 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password must be at least 8 characters long.';
 
     } elseif (
-        !preg_match("/^[A-Za-zÀ-ÿ\s'\-]+$/u", $first_name) ||
-        !preg_match("/^[A-Za-zÀ-ÿ\s'\-]+$/u", $last_name)
+        !preg_match(
+            "/^[A-Za-zÀ-ÿ\s'\-]+$/u",
+            $first_name
+        ) ||
+        !preg_match(
+            "/^[A-Za-zÀ-ÿ\s'\-]+$/u",
+            $last_name
+        )
     ) {
 
-        $error = 'Name may only contain letters, spaces, hyphens, and apostrophes.';
+        $error =
+            'Name may only contain letters, spaces, hyphens, and apostrophes.';
 
     } elseif (!$conn) {
 
-        $error = 'Unable to connect to the database. Please make sure MySQL is running.';
+        $error =
+            'Unable to connect to the database. Please make sure MySQL is running.';
 
     } else {
 
-        // Does this email already exist?
+        /*
+        |--------------------------------------------------------------------------
+        | Check if email already exists
+        |--------------------------------------------------------------------------
+        */
+
         $check = $conn->prepare(
-            "SELECT user_id, is_active FROM users WHERE email = ? LIMIT 1"
+            "SELECT user_id, is_active
+             FROM users
+             WHERE email = ?
+             LIMIT 1"
         );
-        $check->bind_param('s', $email);
-        $check->execute();
-        $existing = $check->get_result()->fetch_assoc();
-        $check->close();
 
-        if ($existing && (int)$existing['is_active'] === 1) {
+        if (!$check) {
 
-            $error = 'An account with this email already exists.';
+            $error = 'Unable to check your account. Please try again.';
 
         } else {
 
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $check->bind_param(
+                's',
+                $email
+            );
 
-            // Activation token: raw one goes in the email,
-            // only the hash is stored in the database.
-            $token      = bin2hex(random_bytes(32));
-            $token_hash = hash('sha256', $token);
-            $expires    = date('Y-m-d H:i:s', time() + 24 * 60 * 60);
+            $check->execute();
 
-            $user_id    = null;
-            $is_new_row = false;
+            $check->store_result();
 
-            if ($existing) {
-                // Registered before but never activated: refresh the record
-                $stmt = $conn->prepare(
-                    "UPDATE users
-                     SET first_name = ?, last_name = ?, password = ?,
-                         activation_token = ?, activation_expires = ?
-                     WHERE user_id = ?"
+            $existing = null;
+
+            if ($check->num_rows > 0) {
+
+                $check->bind_result(
+                    $existing_user_id,
+                    $existing_is_active
                 );
-                $uid = (int)$existing['user_id'];
-                $stmt->bind_param('sssssi',
-                    $first_name, $last_name, $hashed_password,
-                    $token_hash, $expires, $uid
-                );
-                $ok      = $stmt->execute();
-                $user_id = $uid;
-            } else {
-                $stmt = $conn->prepare(
-                    "INSERT INTO users
-                     (first_name, last_name, email, password, role,
-                      is_active, activation_token, activation_expires)
-                     VALUES (?, ?, ?, ?, 'CUSTOMER', 0, ?, ?)"
-                );
-                $stmt->bind_param('ssssss',
-                    $first_name, $last_name, $email,
-                    $hashed_password, $token_hash, $expires
-                );
-                $ok         = $stmt->execute();
-                $user_id    = $conn->insert_id;
-                $is_new_row = true;
+
+                $check->fetch();
+
+                $existing = [
+                    'user_id'   => $existing_user_id,
+                    'is_active' => $existing_is_active
+                ];
             }
 
-            if (!$ok) {
+            $check->close();
 
-                $error = 'Unable to create account. Please try again.';
-                error_log('Signup DB error: ' . $stmt->error);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Active account already exists
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $existing &&
+                (int)$existing['is_active'] === 1
+            ) {
+
+                $error =
+                    'An account with this email already exists.';
 
             } else {
 
-                // Build the activation link
-                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-                $dir    = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-                $link   = $scheme . '://' . $_SERVER['HTTP_HOST'] . $dir
-                        . '/activate.php?token=' . urlencode($token);
+                /*
+                |--------------------------------------------------------------------------
+                | Hash password
+                |--------------------------------------------------------------------------
+                */
 
-                $safe_name = htmlspecialchars($first_name, ENT_QUOTES, 'UTF-8');
+                $hashed_password = password_hash(
+                    $password,
+                    PASSWORD_DEFAULT
+                );
 
-                $body = "
-                    <div style='font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#1e110a'>
-                        <h2>Welcome to brewski, {$safe_name}!</h2>
-                        <p>Please confirm your email address to activate your account.</p>
-                        <p>
-                            <a href='{$link}'
-                               style='display:inline-block;padding:12px 24px;background:#1e110a;
-                                      color:#f1e2ca;text-decoration:none;border-radius:8px;'>
-                                Activate my account
-                            </a>
-                        </p>
-                        <p style='font-size:12px;color:#71492a'>
-                            This link expires in 24 hours. If you didn't create an account,
-                            you can ignore this email.
-                        </p>
-                    </div>";
 
-                if (send_mail($email, $first_name . ' ' . $last_name, 'Activate your brewski account', $body)) {
+                /*
+                |--------------------------------------------------------------------------
+                | Generate activation link token
+                |--------------------------------------------------------------------------
+                */
 
-                    $success = 'Account created! Please check your email to activate your account.';
+                try {
+                    $email_activation_token = bin2hex(random_bytes(32));
+                    $email_activation_hash = hash('sha256', $email_activation_token);
+                    $email_activation_expires = date(
+                        'Y-m-d H:i:s',
+                        time() + (24 * 60 * 60)
+                    );
 
-                    $first_name_value = '';
-                    $last_name_value  = '';
-                    $email_value      = '';
+                } catch (Exception $e) {
 
-                } else {
+                    $error =
+                        'Unable to generate the activation link. Please try again.';
+                    $email_activation_token = null;
+                }
 
-                    // Email failed: remove the new row so they can retry
-                    if ($is_new_row) {
-                        $del = $conn->prepare("DELETE FROM users WHERE user_id = ?");
-                        $del->bind_param('i', $user_id);
-                        $del->execute();
-                        $del->close();
+                if ($error === '' && $email_activation_token !== null) {
+                    $is_new_row = false;
+                    $ok = false;
+                    $stmt = null;
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Existing inactive account
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if ($existing) {
+
+                        $user_id = (int)$existing['user_id'];
+
+                        $stmt = $conn->prepare(
+                            "UPDATE users
+                             SET
+                                first_name = ?,
+                                last_name = ?,
+                                password = ?,
+                                role = 'CUSTOMER',
+                                is_active = 0,
+                                activation_token = NULL,
+                                activation_expires = NULL,
+                                email_activation_token = ?,
+                                email_activation_expires = ?,
+                                updated_at = CURRENT_TIMESTAMP
+                             WHERE user_id = ?"
+                        );
+
+                        if ($stmt) {
+
+                            $stmt->bind_param(
+                                'sssssi',
+                                $first_name,
+                                $last_name,
+                                $hashed_password,
+                                $email_activation_hash,
+                                $email_activation_expires,
+                                $user_id
+                            );
+
+                            $ok = $stmt->execute();
+                        }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | New account
+                    |--------------------------------------------------------------------------
+                    */
+
+                    } else {
+
+                        $stmt = $conn->prepare(
+                            "INSERT INTO users
+                            (
+                                first_name,
+                                last_name,
+                                email,
+                                password,
+                                role,
+                                is_active,
+                                email_activation_token,
+                                email_activation_expires
+                            )
+                            VALUES
+                            (
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                'CUSTOMER',
+                                0,
+                                ?,
+                                ?
+                            )"
+                        );
+
+                        if ($stmt) {
+
+                            $stmt->bind_param(
+                                'ssssss',
+                                $first_name,
+                                $last_name,
+                                $email,
+                                $hashed_password,
+                                $email_activation_hash,
+                                $email_activation_expires
+                            );
+
+                            $ok = $stmt->execute();
+
+                            if ($ok) {
+                                $user_id = $conn->insert_id;
+                                $is_new_row = true;
+                            }
+                        }
                     }
 
-                    $error = 'We could not send the activation email. Please try again later.';
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Database error
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (!$ok) {
+
+                        $error =
+                            'Unable to create account. Please try again.';
+
+                        if ($stmt) {
+                            error_log(
+                                'Signup DB error: ' .
+                                $stmt->error
+                            );
+                        }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Database successful → send activation email
+                    |--------------------------------------------------------------------------
+                    */
+
+                    } else {
+
+                        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                        $directory = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+                        $activation_url = $scheme . '://' . $host . $directory
+                            . '/activate.php?token=' . urlencode($email_activation_token);
+
+                        $email_sent = email_service_send(
+                            'send-activation',
+                            [
+                                'email' => $email,
+                                'firstName' => $first_name,
+                                'activationUrl' => $activation_url
+                            ]
+                        );
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | OTP successfully sent
+                        |--------------------------------------------------------------------------
+                        */
+
+                        if ($email_sent) {
+
+                            $_SESSION['signup_success'] =
+                                'We sent an activation link to your email. Activate your account before logging in.';
+
+                            header('Location: login.php');
+
+                            exit;
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Activation email failed
+                        |--------------------------------------------------------------------------
+                        */
+
+                        } else {
+
+                            /*
+                            | If this was a newly created account,
+                            | delete it so the user can retry signup.
+                            */
+
+                            if ($is_new_row) {
+
+                                $delete = $conn->prepare(
+                                    "DELETE FROM users
+                                     WHERE user_id = ?"
+                                );
+
+                                if ($delete) {
+
+                                    $delete->bind_param(
+                                        'i',
+                                        $user_id
+                                    );
+
+                                    $delete->execute();
+                                    $delete->close();
+                                }
+
+                            } else {
+
+                                /*
+                                | Existing inactive account:
+                                | clear the activation token because the email was not sent.
+                                */
+
+                                $clear = $conn->prepare(
+                                    "UPDATE users
+                                     SET
+                                        activation_token = NULL,
+                                        activation_expires = NULL,
+                                        email_activation_token = NULL,
+                                        email_activation_expires = NULL
+                                     WHERE user_id = ?"
+                                );
+
+                                if ($clear) {
+
+                                    $clear->bind_param(
+                                        'i',
+                                        $user_id
+                                    );
+
+                                    $clear->execute();
+                                    $clear->close();
+                                }
+                            }
+
+
+                            $error =
+                                'We could not send the activation email. Please make sure the email service is running and try again.';
+                        }
+                    }
+
+
+                    if ($stmt) {
+                        $stmt->close();
+                    }
                 }
             }
-
-            $stmt->close();
         }
     }
 }
@@ -199,7 +490,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <link
         rel="preconnect"
-        href="https://fonts.gstatic.com"
+        href="https://fonts.googleapis.com"
         crossorigin
     >
 
@@ -218,8 +509,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <main class="auth">
-
-    
 
     <aside class="side">
 
@@ -252,8 +541,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </aside>
 
 
-    
-
     <section class="auth__panel">
 
         <div class="auth__content">
@@ -272,8 +559,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 Create your account
             </h1>
 
-
-            
 
             <?php if ($error !== ''): ?>
 
@@ -294,8 +579,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
 
-            
-
             <?php if ($success !== ''): ?>
 
                 <p
@@ -313,7 +596,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </p>
 
                 <p class="auth__switch">
-                    <a href="login.php">Go back to login</a>
+                    <a href="login.php">
+                        Go back to login
+                    </a>
                 </p>
 
             <?php else: ?>
@@ -324,8 +609,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 method="POST"
                 action="signup.php"
             >
-
-                
 
                 <div class="field">
 
@@ -351,8 +634,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
 
-                
-
                 <div class="field">
 
                     <label for="last_name">
@@ -376,8 +657,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 </div>
 
-
-                
 
                 <div class="field">
 
@@ -403,29 +682,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
 
-                
+                <div class="field">
 
-               <div class="field">
-    <label for="password">Create password</label>
+                    <label for="password">
+                        Create password
+                    </label>
 
-    <div class="password-wrap">
-        <input type="password" id="password" name="password"
-               autocomplete="new-password" required minlength="8">
+                    <div class="password-wrap">
 
-        <button type="button"
-                class="password-toggle"
-                id="toggle-password"
-                aria-label="Show password"
-                aria-pressed="false">
-            👁
-        </button>
-    </div>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            autocomplete="new-password"
+                            required
+                            minlength="8"
+                        >
 
-    <p class="field__error" id="password-error" style="display:none;"></p>
-</div>
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="toggle-password"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                        >
+                            👁
+                        </button>
 
+                    </div>
 
-                
+                    <p
+                        class="field__error"
+                        id="password-error"
+                        style="display:none;"
+                    ></p>
+
+                </div>
+
 
                 <button
                     type="submit"
@@ -436,8 +729,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </form>
 
-
-            
 
             <p class="auth__switch">
 
@@ -458,11 +749,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </main>
 
 
-<script src="script.js"></script> 
-
-
-</body>
-</html>
+<script src="script.js"></script>
 
 </body>
 
