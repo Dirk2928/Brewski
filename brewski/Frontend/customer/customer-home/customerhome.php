@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+/*session_start();
 
 if (!isset($_SESSION['user_id'])) {
 
@@ -20,6 +20,7 @@ if (
 $first_name = $_SESSION['first_name'] ?? 'Customer';
 $last_name  = $_SESSION['last_name'] ?? '';
 $email      = $_SESSION['email'] ?? '';
+*/
 
 $display_first_name = htmlspecialchars(
     $first_name,
