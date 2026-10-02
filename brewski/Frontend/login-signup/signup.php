@@ -312,10 +312,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ?>
                 </p>
 
-            <?php endif; ?>
+                <p class="auth__switch">
+                    <a href="login.php">Go back to login</a>
+                </p>
 
-
-            
+            <?php else: ?>
 
             <form
                 class="form"
@@ -448,37 +449,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </p>
 
+            <?php endif; ?>
+
         </div>
 
     </section>
 
 </main>
 
-
-<?php if ($success !== ''): ?>
-
-<script>
-
-    setTimeout(function () {
-
-        window.location.href = "login.php";
-
-    }, 2000);
-
-</script>
-
-<?php endif; ?>
-
-
-<?php if ($success !== ''): ?>
-
-<script>
-    setTimeout(function () {
-        window.location.href = "login.php";
-    }, 2000);
-</script>
-
-<?php endif; ?>
 
 <script src="script.js"></script> 
 
