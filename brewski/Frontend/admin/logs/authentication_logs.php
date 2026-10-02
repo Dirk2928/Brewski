@@ -3,14 +3,14 @@
 // (or the users table's last-login columns) exists.
 // role mirrors users.role in brewski_db: CUSTOMER, STAFF or ADMIN.
 $logs = [
-    ['id' => 'LOG-2021', 'logged_at' => '2026-09-29 14:05', 'name' => 'Marco Reyes',     'role' => 'STAFF'],
-    ['id' => 'LOG-2020', 'logged_at' => '2026-09-29 13:41', 'name' => 'Ana de los Reyes', 'role' => 'CUSTOMER'],
-    ['id' => 'LOG-2019', 'logged_at' => '2026-09-29 12:58', 'name' => 'Admin User',       'role' => 'ADMIN'],
-    ['id' => 'LOG-2018', 'logged_at' => '2026-09-29 11:22', 'name' => 'Liza Bautista',    'role' => 'STAFF'],
-    ['id' => 'LOG-2017', 'logged_at' => '2026-09-29 10:47', 'name' => 'Juan Dela Cruz',   'role' => 'CUSTOMER'],
-    ['id' => 'LOG-2016', 'logged_at' => '2026-09-29 09:30', 'name' => 'Noel Aquino',      'role' => 'STAFF'],
-    ['id' => 'LOG-2015', 'logged_at' => '2026-09-29 08:52', 'name' => 'Maria Santos',     'role' => 'CUSTOMER'],
-    ['id' => 'LOG-2014', 'logged_at' => '2026-09-28 19:16', 'name' => 'Admin User',       'role' => 'ADMIN'],
+    ['id' => 'LOG-2021', 'logged_at' => '2026-09-29 14:05', 'name' => 'Marco Reyes',     'role' => 'STAFF',    'activity' => 'Logged in'],
+    ['id' => 'LOG-2020', 'logged_at' => '2026-09-29 13:41', 'name' => 'Ana de los Reyes', 'role' => 'CUSTOMER', 'activity' => 'Logged out'],
+    ['id' => 'LOG-2019', 'logged_at' => '2026-09-29 12:58', 'name' => 'Admin User',       'role' => 'ADMIN',    'activity' => 'Logged in'],
+    ['id' => 'LOG-2018', 'logged_at' => '2026-09-29 11:22', 'name' => 'Liza Bautista',    'role' => 'STAFF',    'activity' => 'Logged out'],
+    ['id' => 'LOG-2017', 'logged_at' => '2026-09-29 10:47', 'name' => 'Juan Dela Cruz',   'role' => 'CUSTOMER', 'activity' => 'Logged in'],
+    ['id' => 'LOG-2016', 'logged_at' => '2026-09-29 09:30', 'name' => 'Noel Aquino',      'role' => 'STAFF',    'activity' => 'Logged out'],
+    ['id' => 'LOG-2015', 'logged_at' => '2026-09-29 08:52', 'name' => 'Maria Santos',     'role' => 'CUSTOMER', 'activity' => 'Logged in'],
+    ['id' => 'LOG-2014', 'logged_at' => '2026-09-28 19:16', 'name' => 'Admin User',       'role' => 'ADMIN',    'activity' => 'Logged out'],
 ];
 
 $roles = ['ADMIN', 'STAFF', 'CUSTOMER'];
@@ -21,7 +21,7 @@ $roles = ['ADMIN', 'STAFF', 'CUSTOMER'];
     <!-- Header Section -->
     <div class="page-header">
         <h1 class="page-title">Authentication Logs</h1>
-        <p class="subtitle">Sign-in history, most recent first, with the role each account holds.</p>
+        <p class="subtitle">Sign-in and sign-out history, most recent first, with the role each account holds.</p>
     </div>
 
     <!-- Toolbar: Search & Filter -->
@@ -53,6 +53,7 @@ $roles = ['ADMIN', 'STAFF', 'CUSTOMER'];
                         <th>Time</th>
                         <th>Name</th>
                         <th>Role</th>
+                        <th>Activity</th>
                     </tr>
                 </thead>
                 <tbody id="logTableBody">
@@ -77,12 +78,14 @@ $roles = ['ADMIN', 'STAFF', 'CUSTOMER'];
                         <td>
                             <span class="badge <?= $roleClass ?>"><?= htmlspecialchars(ucfirst(strtolower($log['role']))) ?></span>
                         </td>
+
+                        <td><span class="cell-muted"><?= htmlspecialchars($log['activity']) ?></span></td>
                     </tr>
                     <?php endforeach; ?>
 
                     <!-- Empty State Row -->
                     <tr id="logNoResults" class="hidden">
-                        <td colspan="4" class="empty-cell">
+                        <td colspan="5" class="empty-cell">
                             <div class="empty-state">
                                 <p class="empty-title">No log entries found</p>
                                 <p class="empty-hint">Try adjusting your search or filter criteria.</p>

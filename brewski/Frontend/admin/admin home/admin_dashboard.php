@@ -107,9 +107,6 @@ if ($mysqli) {
                     Transactions
                 </button>
 
-                <button type="button" class="nav-item nav-subitem" data-view="../customer%20information/authentication_logs.php">
-                    Authentication Logs
-                </button>
             </div>
 
             <!-- Staff Management Parent Toggle -->
@@ -127,6 +124,8 @@ if ($mysqli) {
                     Transactions Handled
                 </button>
             </div>
+
+            <button type="button" class="nav-item" data-view="../logs/authentication_logs.php">Authentication Logs</button>
 
             <button type="button" class="nav-item" data-view="profile">Profile</button>
         </nav>
