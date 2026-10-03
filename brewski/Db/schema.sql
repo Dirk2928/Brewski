@@ -1,4 +1,4 @@
--- Copy niyo nalang buo, no need mag create ng database bago ipaste
+
 
 CREATE DATABASE IF NOT EXISTS brewski_db;
 

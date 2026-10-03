@@ -18,9 +18,9 @@ if (!emailUser || !emailPassword) {
     process.exit(1);
 }
 
-// --------------------------------------------------
-// Nodemailer transporter
-// --------------------------------------------------
+
+
+
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -97,7 +97,6 @@ app.post("/send-login-otp", async (req, res) => {
     }
 });
 
-// --------------------------------------------------
 async function start() {
     try {
         await transporter.verify();

@@ -88,7 +88,7 @@ The app connects via `mysqli` with these defaults (matching a stock XAMPP instal
 ```php
 $conn = new mysqli('localhost', 'root', '', 'brewski_db');
 ```
-If your MySQL uses a different host, username, or password, update these values in the PHP files under `Frontend/` that open a connection (e.g. `Frontend/login-signup/login.php`).
+If your MySQL uses a different host, username, or password, update the PHP files under `login-signup/` that open a connection (e.g. `login-signup/login.php`).
 
 ### 4. Serve the PHP app
 **Option A — XAMPP:**
@@ -117,7 +117,7 @@ npm start
 ```
 
 ### 6. Open the app
-With Apache: `http://localhost/brewski/Frontend/login-signup/login.php`
-With the built-in server: `http://localhost:8000/Frontend/login-signup/login.php`
+With Apache: `http://localhost/brewski/login-signup/login.php`
+With the built-in server: `http://localhost:8000/login-signup/login.php`
 
 Make sure MySQL and the email service are both running before testing registration/login.
