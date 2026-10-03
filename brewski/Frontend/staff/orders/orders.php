@@ -7,7 +7,7 @@ session_start();
 
 if (!isset($_SESSION['user_id'])) {
 
-    header('Location: ../login-signup/login.php');
+    header('Location: ../../login-signup/login.php');
     exit;
 }
 
@@ -15,7 +15,7 @@ $role = strtoupper(trim((string) ($_SESSION['role'] ?? '')));
 
 if ($role !== 'STAFF' && $role !== 'ADMIN') {
 
-    header('Location: ../login-signup/login.php');
+    header('Location: ../../login-signup/login.php');
     exit;
 }
 
@@ -56,7 +56,7 @@ $display_name = htmlspecialchars(
 
     <link
         rel="stylesheet"
-        href="staff.css?v=<?= filemtime(__DIR__ . '/staff.css') ?>"
+        href="../staff.css?v=<?= filemtime(__DIR__ . '/../staff.css') ?>"
     >
 
 </head>
@@ -98,7 +98,7 @@ $display_name = htmlspecialchars(
                 </button>
 
                 <a
-                    href="../customer/customer-home/logout.php"
+                    href="../../login-signup/logout.php"
                     class="profile-menu-item border-top"
                 >
                     Log out
@@ -206,7 +206,7 @@ $display_name = htmlspecialchars(
     </main>
 
     <script
-        src="staff.js?v=<?= filemtime(__DIR__ . '/staff.js') ?>"
+        src="../staff.js?v=<?= filemtime(__DIR__ . '/../staff.js') ?>"
         defer
     ></script>
 

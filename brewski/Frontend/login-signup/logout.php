@@ -9,5 +9,5 @@ $_SESSION = [];
 session_destroy();
 
 // Go back to login page
-header('Location: ../../login-signup/login.php');
+header('Location: login.php');
 exit;

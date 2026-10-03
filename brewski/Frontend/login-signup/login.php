@@ -11,7 +11,7 @@ mysqli_report(MYSQLI_REPORT_OFF);
 |--------------------------------------------------------------------------
 */
 
-$CUSTOMER_HOME = '../customer/customer-home/customerhome.php';
+$CUSTOMER_HOME = '../customer/customer_home/customerhome.php';
 $ADMIN_HOME    = '../admin/admin%20home/admin_dashboard.php';
 
 
@@ -569,7 +569,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <img
                 class="brand__logo"
-                src="images/brewskilogo.png"
+                src="../brewskilogo.png"
                 alt="Brewski Logo"
             >
 

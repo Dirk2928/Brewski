@@ -99,7 +99,7 @@ if (!is_string($token) || !preg_match('/\A[a-f0-9]{64}\z/i', $token)) {
     </aside>
     <section class="auth__panel">
         <div class="auth__content">
-            <img class="brand__logo" src="images/brewskilogo.png" alt="Brewski Logo">
+            <img class="brand__logo" src="../brewskilogo.png" alt="Brewski Logo">
             <p class="brand__name">brew<span>ski</span></p>
             <h1 class="auth__title">Activation link unavailable</h1>
             <p class="field__error" style="text-align:center;margin-bottom:1rem;">

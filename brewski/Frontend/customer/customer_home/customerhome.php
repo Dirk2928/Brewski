@@ -72,8 +72,8 @@ $display_email = htmlspecialchars(
         rel="stylesheet"
     >
 
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../profile.css">
     
 
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -99,7 +99,7 @@ $display_email = htmlspecialchars(
             </a>
 
             <a
-                href="customermenu.php"
+                href="../customer_menu/customermenu.php"
                 class="topbar__link"
             >
                 <i data-lucide="coffee"></i>
@@ -146,7 +146,7 @@ $display_email = htmlspecialchars(
 
         <div class="profile-dropdown__divider"></div>
 
-        <a href="logout.php" class="logout-button">
+        <a href="../../login-signup/logout.php" class="logout-button">
             <i data-lucide="log-out"></i>
             Logout
         </a>
@@ -201,7 +201,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="blackcoffee.png"
+                            src="../../blackcoffee.png"
                             alt="Black Coffee"
                         >
 
@@ -241,7 +241,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="caramel.png"
+                            src="../../caramel.png"
                             alt="Caramel Macchiato"
                         >
 
@@ -281,7 +281,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="cafelatte.png"
+                            src="../../cafelatte.png"
                             alt="Cafe Latte"
                         >
 
@@ -321,7 +321,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="blackcoffee.png"
+                            src="../../blackcoffee.png"
                             alt="Black Coffee"
                         >
 
@@ -373,7 +373,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="icedcoffee.png"
+                            src="../../icedcoffee.png"
                             alt="Iced Coffee"
                         >
 
@@ -413,7 +413,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="mocha.png"
+                            src="../../mocha.png"
                             alt="Cafe Mocha"
                         >
 
@@ -453,7 +453,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="doubleepresso.png"
+                            src="../../doubleepresso.png"
                             alt="Double Espresso"
                         >
 
@@ -493,7 +493,7 @@ $display_email = htmlspecialchars(
                     <div class="product-card__image">
 
                         <img
-                            src="matchalatte.png"
+                            src="../../matchalatte.png"
                             alt="Matcha Latte"
                         >
 
@@ -791,7 +791,7 @@ $display_email = htmlspecialchars(
 
     </div>
 
-    <script src="script.js"></script>
+    <script src="../script.js"></script>
 
     <script>
         lucide.createIcons();

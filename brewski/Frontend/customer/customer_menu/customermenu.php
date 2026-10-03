@@ -7,7 +7,7 @@ $products = [
         'price' => 170,
         'category' => 'coffee',
         'temp' => 'hot',
-        'image' => 'blackcoffee.png'
+        'image' => '../../blackcoffee.png'
     ],
     [
         'id' => 2,
@@ -15,7 +15,7 @@ $products = [
         'price' => 180,
         'category' => 'coffee',
         'temp' => 'hot',
-        'image' => 'caramel.png'
+        'image' => '../../caramel.png'
     ],
     [
         'id' => 3,
@@ -23,7 +23,7 @@ $products = [
         'price' => 170,
         'category' => 'coffee',
         'temp' => 'hot',
-        'image' => 'cafelatte.png'
+        'image' => '../../cafelatte.png'
     ],
     [
         'id' => 4,
@@ -31,7 +31,7 @@ $products = [
         'price' => 150,
         'category' => 'coffee',
         'temp' => 'hot',
-        'image' => 'doubleepresso.png'
+        'image' => '../../doubleepresso.png'
     ],
     [
         'id' => 5,
@@ -39,7 +39,7 @@ $products = [
         'price' => 160,
         'category' => 'coffee',
         'temp' => 'iced',
-        'image' => 'icedcoffee.png'
+        'image' => '../../icedcoffee.png'
     ],
 
     [
@@ -48,7 +48,7 @@ $products = [
         'price' => 190,
         'category' => 'non-coffee',
         'temp' => 'hot',
-        'image' => 'matchalatte.png'
+        'image' => '../../matchalatte.png'
     ],
     [
         'id' => 7,
@@ -56,7 +56,7 @@ $products = [
         'price' => 175,
         'category' => 'non-coffee',
         'temp' => 'hot',
-        'image' => 'mocha.png'
+        'image' => '../../mocha.png'
     ],
     [
         'id' => 8,
@@ -64,7 +64,7 @@ $products = [
         'price' => 185,
         'category' => 'non-coffee',
         'temp' => 'iced',
-        'image' => 'cafelatte.png'
+        'image' => '../../cafelatte.png'
     ],
 
     [
@@ -73,7 +73,7 @@ $products = [
         'price' => 210,
         'category' => 'frappe',
         'temp' => 'iced',
-        'image' => 'caramel.png'
+        'image' => '../../caramel.png'
     ],
     [
         'id' => 10,
@@ -81,7 +81,7 @@ $products = [
         'price' => 205,
         'category' => 'frappe',
         'temp' => 'iced',
-        'image' => 'mocha.png'
+        'image' => '../../mocha.png'
     ],
     [
         'id' => 11,
@@ -89,7 +89,7 @@ $products = [
         'price' => 215,
         'category' => 'frappe',
         'temp' => 'iced',
-        'image' => 'blackcoffee.png'
+        'image' => '../../blackcoffee.png'
     ],
 
     [
@@ -98,7 +98,7 @@ $products = [
         'price' => 160,
         'category' => 'tea',
         'temp' => 'iced',
-        'image' => 'icedcoffee.png'
+        'image' => '../../icedcoffee.png'
     ],
     [
         'id' => 13,
@@ -106,7 +106,7 @@ $products = [
         'price' => 150,
         'category' => 'tea',
         'temp' => 'iced',
-        'image' => 'caramel.png'
+        'image' => '../../caramel.png'
     ],
     [
         'id' => 14,
@@ -114,7 +114,7 @@ $products = [
         'price' => 140,
         'category' => 'tea',
         'temp' => 'hot',
-        'image' => 'matchalatte.png'
+        'image' => '../../matchalatte.png'
     ],
 ];
 ?>
@@ -128,8 +128,8 @@ $products = [
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="menu.css">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../menu.css">
     
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -139,7 +139,7 @@ $products = [
     <header class="topbar">
         <div class="topbar__brand">Brewski</div>
         <nav class="topbar__nav">
-            <a href="customerhome.php" class="topbar__link">
+            <a href="../customer_home/customerhome.php" class="topbar__link">
                 <i data-lucide="home"></i> Home
             </a>
             <a href="customermenu.php" class="topbar__link active">
@@ -305,6 +305,6 @@ $products = [
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="../script.js"></script>
 </body>
 </html>

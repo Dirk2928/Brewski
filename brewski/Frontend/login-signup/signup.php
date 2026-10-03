@@ -31,7 +31,7 @@ if ($conn->connect_error) {
 */
 
 if (isset($_SESSION['user_id'])) {
-    header('Location: ../customer/customer-home/customerhome.php');
+    header('Location: ../customer/customer_home/customerhome.php');
     exit;
 }
 
@@ -547,7 +547,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <img
                 class="brand__logo"
-                src="images/brewskilogo.png"
+                src="../brewskilogo.png"
                 alt="Brewski Logo"
             >
 

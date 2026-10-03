@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($pending['role'] === 'ADMIN' || $pending['role'] === 'STAFF') {
                         header('Location: ../admin/admin%20home/admin_dashboard.php');
                     } else {
-                        header('Location: ../customer/customer-home/customerhome.php');
+                        header('Location: ../customer/customer_home/customerhome.php');
                     }
                     exit;
                 } else {
@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <img
                 class="brand__logo"
-                src="images/brewskilogo.png"
+                src="../brewskilogo.png"
                 alt="Brewski Logo"
             >
 
