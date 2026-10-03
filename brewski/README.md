@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Project Title
 
-## Getting Started
+Brewski: A Web-Based Café Ordering System with Personalized Drink Recommendations
 
-First, run the development server:
+## Group Members
 
+1. Dirk Maverick Cruz – @Dirk Maverick Cruz
+1. Biena Rose Bahay – @Biena Rose Bahay
+2. Yther Ballesteros – @Yther Ballesteros
+3. Gerald Saligan  - @Gerald Saligan
+
+## Project Description
+
+Brewski is a PHP and MySQL web application for a coffee shop. It handles customer
+accounts from sign-up through sign-in, and gives staff and administrators a
+dashboard for viewing shop activity.
+
+New customers register with their name, email, and password. The account stays
+inactive until the customer clicks an activation link sent to their email. Once
+activated, every login requires a second step: a six-digit one-time code is
+emailed to the customer and must be entered to finish signing in. After login,
+users are routed by role — customers to the shop home page, and staff or
+administrators to the admin dashboard.
+
+## Technologies Used
+
+- PHP
+- MySQL
+- HTML
+- CSS
+- JavaScript
+- Node.js, Nodemailer
+
+## System Features
+
+- **User Authentication** — Registration, login, and password recovery, restricting access to authorized customers, staff, and admins.
+
+- **Customer Profile** — Dashboard for managing account details, viewing order history, and saving preferred delivery/pickup info.
+
+- **Role-Based Access Control** — Permission levels for customers, staff, and admins so each role sees only what's relevant to them.
+
+- **Beverage Menu Management** — Staff can add, edit, remove, categorize, and update availability of drink items in real time.
+
+- **Drink Recommendation Form** — Rule-based quiz on flavor, sweetness, caffeine, and temperature preferences that suggests drinks, filtering out any the customer is allergic to.
+
+- **First-Timer Preference Menu** — New customers take a preference assessment on account creation; the menu is then sorted from best to worst match based on their answers.
+
+- **Order Customization** — Customers personalize drinks with flavor options, size, add-ons, or special requests before checkout.
+
+- **Online Ordering** — Browse the menu, select items, and review an order summary before confirming.
+
+- **Payment Processing** — Secure checkout with automatic digital receipt generation.
+
+- **Order Tracking** — Real-time status updates from confirmation through preparation to completion.
+
+- **Staff Dashboard** — Live order queue for baristas/attendants to monitor orders, update status, and flag delays or issues.
+
+- **Admin Dashboard** — Centralized panel for staff activity and system performance visibility.
+
+- **Sales Reports** — Daily, weekly, and monthly sales reports, including best-selling drinks.
+
+- **Audit Logs** — System-wide log of key actions (menu changes, order updates, account modifications) for accountability and traceability.
+
+## Database
+
+- **Database name:** `brewski_db`
+- **SQL export file:** [`Db/schema.sql`](Db/schema.sql)
+
+## Installation / Setup
+
+### Prerequisites
+- [XAMPP](https://www.apachefriends.org/) (Apache + MySQL + PHP), or any PHP 8+/MySQL stack
+- [Node.js](https://nodejs.org/) (for the OTP email service)
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Dirk2928/PHP_Group05_Project.git
+cd PHP_Group05_Project/brewski
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Set up the database
+1. Start **MySQL** (e.g. via XAMPP Control Panel).
+2. Open **phpMyAdmin** → **SQL** tab, or use the MySQL CLI.
+3. Run the contents of `Db/schema.sql`. This creates the `brewski_db` database and all required tables.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configure the database connection
+The app connects via `mysqli` with these defaults (matching a stock XAMPP install):
+```php
+$conn = new mysqli('localhost', 'root', '', 'brewski_db');
+```
+If your MySQL uses a different host, username, or password, update these values in the PHP files under `Frontend/` that open a connection (e.g. `Frontend/login-signup/login.php`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Serve the PHP app
+**Option A — XAMPP:**
+Copy or symlink the `brewski` folder into `htdocs/`, then start **Apache** and **MySQL**.
 
-## Learn More
+**Option B — PHP's built-in server:**
+```bash
+php -S localhost:8000
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Set up the email service (OTP/account emails)
+```bash
+cd email-service
+cp .env.example .env
+```
+Edit `.env` with a Gmail address and an [app password](https://support.google.com/accounts/answer/185833):
+```
+EMAIL_USER=your-gmail-address@gmail.com
+EMAIL_PASSWORD=your-16-character-app-password
+PORT=3000
+```
+Then install dependencies and start the service:
+```bash
+npm install
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 6. Open the app
+With Apache: `http://localhost/brewski/Frontend/login-signup/login.php`
+With the built-in server: `http://localhost:8000/Frontend/login-signup/login.php`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Make sure MySQL and the email service are both running before testing registration/login.
