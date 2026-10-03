@@ -53,6 +53,10 @@ if ($mysqli) {
     <title>Brewski Admin Dashboard</title>
 
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+
 
     <link rel="stylesheet" href="../admin.css?v=<?= filemtime(__DIR__ . '/../admin.css') ?>">
 </head>
@@ -60,15 +64,9 @@ if ($mysqli) {
 
 
     <header class="topbar">
-        <button type="button" id="menuBtn" class="icon-btn menu-btn" aria-label="Open admin menu" aria-expanded="false">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-
-        <span class="topbar-title">Brewski Admin</span>
-
+        <img class="topbar-logo" src="../../images/brewskilogo.png" alt="Brewski logo">
         <div class="profile-wrapper">
+            <span class="profile-label">Admin</span>
             <button type="button" id="profileBtn" class="icon-btn profile-btn" aria-label="Open profile menu" aria-expanded="false"></button>
 
             <div id="profileMenu" class="profile-menu hidden">
@@ -80,6 +78,7 @@ if ($mysqli) {
 
 
     <aside id="sidebar" class="sidebar">
+        <div class="sidebar-brand">brewski</div>
         <nav class="sidebar-nav">
 
             <button type="button" class="nav-item active" data-view="home">Home</button>

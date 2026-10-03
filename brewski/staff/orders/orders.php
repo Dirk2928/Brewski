@@ -52,7 +52,11 @@ $display_name = htmlspecialchars(
         content="width=device-width, initial-scale=1"
     >
 
-    <title>Brewski Staff</title>
+    <title>brewski Staff</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
 
     <link
         rel="stylesheet"
@@ -64,24 +68,9 @@ $display_name = htmlspecialchars(
 <body>
 
     <header class="topbar">
-
-        <button
-            type="button"
-            id="menuBtn"
-            class="icon-btn menu-btn"
-            aria-label="Open staff menu"
-            aria-expanded="false"
-        >
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-
-        <span class="topbar-title">
-            Brewski Staff
-        </span>
-
+        <img class="topbar-logo" src="../../images/brewskilogo.png" alt="Brewski logo">
         <div class="profile-wrapper">
+            <span class="profile-label">Staff</span>
 
             <button
                 type="button"
@@ -107,10 +96,10 @@ $display_name = htmlspecialchars(
             </div>
 
         </div>
-
     </header>
 
     <aside id="sidebar" class="sidebar">
+        <div class="sidebar-brand">brewski</div>
 
         <nav class="sidebar-nav">
 

@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    var menuBtn = document.getElementById('menuBtn');
-    var sidebar = document.getElementById('sidebar');
     var profileBtn = document.getElementById('profileBtn');
     var profileMenu = document.getElementById('profileMenu');
 
@@ -11,18 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var dynamicView = document.getElementById('dynamicView');
     var placeholderView = document.getElementById('placeholderView');
     var placeholderTitle = document.getElementById('placeholderTitle');
-
-    function openMenu() {
-        sidebar.classList.add('open');
-        document.body.classList.add('sidebar-open');
-        menuBtn.setAttribute('aria-expanded', 'true');
-    }
-
-    function closeMenu() {
-        sidebar.classList.remove('open');
-        document.body.classList.remove('sidebar-open');
-        menuBtn.setAttribute('aria-expanded', 'false');
-    }
 
     function updateActiveNav(clickedBtn) {
         document.querySelectorAll('.nav-item').forEach(function (b) {
@@ -226,25 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    menuBtn.addEventListener('click', function (event) {
-        event.stopPropagation();
-        if (sidebar.classList.contains('open')) {
-            closeMenu();
-        } else {
-            openMenu();
-        }
-    });
-
-    document.addEventListener('click', function (event) {
-        var isOpen = sidebar.classList.contains('open');
-        var clickedInsideSidebar = sidebar.contains(event.target);
-        var clickedMenuBtn = menuBtn.contains(event.target);
-
-        if (isOpen && !clickedInsideSidebar && !clickedMenuBtn) {
-            closeMenu();
-        }
-    });
-
     profileBtn.addEventListener('click', function (event) {
         event.stopPropagation();
         var isHidden = profileMenu.classList.toggle('hidden');
@@ -268,9 +235,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             loadView(viewTarget);
 
-            if (window.innerWidth <= 768) {
-                closeMenu();
-            }
         });
     });
 
