@@ -2,24 +2,24 @@
 
 session_start();
 
+/* Auth guard - commented out while this page is still a design shell.
+   Uncomment this whole block before the page is exposed to real users.
 
+if (!isset($_SESSION['user_id'])) {
 
+    header('Location: ../../login-signup/login.php');
+    exit;
+}
 
+$role = strtoupper(trim((string) ($_SESSION['role'] ?? '')));
 
+if ($role !== 'STAFF' && $role !== 'ADMIN') {
 
+    header('Location: ../../login-signup/login.php');
+    exit;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
+*/
 
 $is_signed_in = isset($_SESSION['user_id']);
 
@@ -133,7 +133,7 @@ $display_name = htmlspecialchars(
             <button
                 type="button"
                 class="nav-item"
-                data-view="order-history"
+                data-view="../order_history/order_history.php"
             >
                 Order History
             </button>
