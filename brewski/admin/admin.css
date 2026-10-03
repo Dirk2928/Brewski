@@ -180,12 +180,13 @@ body {
     border-right: 1px solid rgba(241, 226, 202, 0.12);
     z-index: 30;
     overflow-y: auto;
+    font-family: "Century Gothic", "CenturyGothic", sans-serif;
 }
 
 .sidebar-brand {
     margin: 4px 20px 20px;
     color: var(--latte);
-    font-family: var(--font-brand);
+    font-family: "Century Gothic", "CenturyGothic", sans-serif;
     font-size: 1.5rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -203,6 +204,7 @@ body {
     padding: 12px 20px;
     text-align: left;
     font-size: 14px;
+    font-family: "Century Gothic", "CenturyGothic", sans-serif;
     color: var(--latte);
     background-color: transparent;
     border: none;
