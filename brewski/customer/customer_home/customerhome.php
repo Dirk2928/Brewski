@@ -127,14 +127,18 @@ $display_email = htmlspecialchars(
                 Orders
             </a>
 
-            <div class="profile-menu">
-    <button
-        type="button"
-        class="topbar__link profile-button"
-        id="profile-button"
-    >
+ <div class="profile-menu">
+    <a href="../profile/profile.php" class="topbar__link profile-link">
         <i data-lucide="user"></i>
         Profile
+    </a>
+
+    <button
+        type="button"
+        class="profile-button"
+        id="profile-button"
+        aria-label="Open profile menu"
+    >
         <i data-lucide="chevron-down" class="profile-chevron"></i>
     </button>
 
@@ -145,6 +149,11 @@ $display_email = htmlspecialchars(
         </div>
 
         <div class="profile-dropdown__divider"></div>
+
+        <a href="../profile/profile.php" class="logout-button">
+            <i data-lucide="user-round"></i>
+            My Profile
+        </a>
 
         <a href="../../login-signup/logout.php" class="logout-button">
             <i data-lucide="log-out"></i>
